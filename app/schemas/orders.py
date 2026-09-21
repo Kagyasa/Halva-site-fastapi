@@ -4,12 +4,17 @@ from typing import Literal
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 
+class OrderItemRequest(BaseModel):
+    product_id: str = Field(min_length=1, max_length=64)
+    quantity: int = Field(ge=1, le=50)
+
+
 class OrderEmailRequest(BaseModel):
     name: str = Field(min_length=2, max_length=100)
     phone: str = Field(min_length=7, max_length=30)
     date: date
     time: time
-    product_ids: list[str] = Field(min_length=1, max_length=30)
+    items: list[OrderItemRequest] = Field(min_length=1, max_length=30)
     delivery_type: Literal["pickup", "delivery"]
     pickup_location: str | None = Field(default=None, max_length=200)
     address: str | None = Field(default=None, max_length=300)
@@ -22,6 +27,17 @@ class OrderEmailRequest(BaseModel):
         if len(digits) not in (10, 11):
             raise ValueError("В номере телефона должно быть 10–11 цифр")
         return value.strip()
+
+    @field_validator("items")
+    @classmethod
+    def validate_unique_products(
+        cls,
+        value: list[OrderItemRequest],
+    ) -> list[OrderItemRequest]:
+        product_ids = [item.product_id for item in value]
+        if len(product_ids) != len(set(product_ids)):
+            raise ValueError("Один товар не должен повторяться в заявке")
+        return value
 
     @model_validator(mode="after")
     def validate_delivery_fields(self):

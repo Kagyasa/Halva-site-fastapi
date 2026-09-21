@@ -1286,6 +1286,94 @@
       color: #8f8389;
     }
 
+
+    /* Quantity selector for each selected dessert */
+    .order-product-option {
+      grid-template-columns: 15px minmax(0, 1fr) auto auto;
+      align-items: center;
+    }
+
+    .order-product-main-label {
+      display: contents;
+      cursor: pointer;
+    }
+
+    .order-product-quantity {
+      display: none;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 3px;
+      margin-left: 4px;
+    }
+
+    .order-product-option.is-selected .order-product-quantity {
+      display: inline-flex;
+    }
+
+    .order-quantity-button {
+      width: 22px;
+      height: 22px;
+      padding: 0;
+      border: 1px solid rgba(223, 19, 117, .28);
+      border-radius: 7px;
+      background: #fff;
+      color: var(--pink);
+      font: 600 15px/1 Inter, sans-serif;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+    }
+
+    .order-quantity-button:active {
+      transform: scale(.94);
+    }
+
+    .order-product-quantity-input {
+      width: 30px;
+      height: 22px;
+      padding: 0;
+      border: 1px solid rgba(26, 26, 26, .13);
+      border-radius: 7px;
+      background: rgba(255,255,255,.92);
+      color: #1a1a1a;
+      text-align: center;
+      font: 500 11px/1 Inter, sans-serif;
+      appearance: textfield;
+      -moz-appearance: textfield;
+    }
+
+    .order-product-quantity-input::-webkit-outer-spin-button,
+    .order-product-quantity-input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    @media (max-width: 760px) {
+      .order-product-option {
+        grid-template-columns: 18px minmax(0, 1fr) auto;
+        align-items: center;
+      }
+
+      .order-product-quantity {
+        grid-column: 2 / 4;
+        justify-self: end;
+        margin: 2px 0 1px;
+      }
+
+      .order-quantity-button {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        font-size: 17px;
+      }
+
+      .order-product-quantity-input {
+        width: 34px;
+        height: 28px;
+        font-size: 13px;
+      }
+    }
+
     /* ================= ORDER MODAL — EXTRA COMPACT ================= */
     /* Desktop: the panel is only a little smaller, but the inner UI is much denser. */
     @media (min-width: 761px) {
@@ -3236,6 +3324,43 @@
     }
 
 
+  
+    /* Final quantity overrides: keep quantity controls intact after legacy modal media rules */
+    .order-product-option {
+      grid-template-columns: 15px minmax(0, 1fr) auto auto !important;
+    }
+
+    .order-product-quantity-input {
+      appearance: textfield !important;
+      -webkit-appearance: none !important;
+      width: 30px !important;
+      height: 22px !important;
+      min-width: 30px !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      border-radius: 7px !important;
+      display: block !important;
+      font-size: 11px !important;
+      line-height: 1 !important;
+    }
+
+    @media (max-width: 760px) {
+      .order-product-option {
+        grid-template-columns: 18px minmax(0, 1fr) auto !important;
+      }
+
+      .order-product-quantity {
+        grid-column: 2 / 4 !important;
+      }
+
+      .order-product-quantity-input {
+        width: 34px !important;
+        height: 28px !important;
+        min-width: 34px !important;
+        font-size: 13px !important;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -3498,7 +3623,7 @@
 
       <h2 class="order-modal-title" id="order-modal-title">Заявка на заказ</h2>
       <p class="order-modal-subtitle">
-        Выберите десерт и способ получения. После отправки заявка придёт на рабочую почту.
+        Выберите десерты, укажите количество каждого и способ получения. После отправки заявка придёт на рабочую почту.
       </p>
 
       <form id="order-form" class="order-form-grid">
@@ -3826,11 +3951,51 @@
       );
     }
 
+    function getOrderProductQuantityMap() {
+      const quantities = new Map();
+
+      document
+        .querySelectorAll('#order-product-list .order-product-quantity-input')
+        .forEach(input => {
+          const productId = input.dataset.productId;
+          const quantity = Math.max(1, Math.min(50, Number(input.value) || 1));
+          if (productId) quantities.set(productId, quantity);
+        });
+
+      return quantities;
+    }
+
+    function setOrderProductQuantity(row, quantity) {
+      const input = row?.querySelector('.order-product-quantity-input');
+      if (!input) return;
+
+      const safeQuantity = Math.max(1, Math.min(50, Number(quantity) || 1));
+      input.value = String(safeQuantity);
+      updateOrderTotal();
+    }
+
+    function syncOrderProductRowState(row) {
+      const checkbox = row?.querySelector('input[type="checkbox"]');
+      const quantityInput = row?.querySelector('.order-product-quantity-input');
+
+      if (!checkbox || !quantityInput) return;
+
+      row.classList.toggle('is-selected', checkbox.checked);
+      quantityInput.disabled = !checkbox.checked;
+
+      row
+        .querySelectorAll('.order-quantity-button')
+        .forEach(button => {
+          button.disabled = !checkbox.checked;
+        });
+    }
+
     function renderOrderProductOptions() {
       const list = document.getElementById('order-product-list');
       if (!list) return;
 
       const checkedIds = getCheckedOrderProductIds();
+      const savedQuantities = getOrderProductQuantityMap();
       list.innerHTML = '';
 
       if (!orderProducts.length) {
@@ -3840,27 +4005,85 @@
       }
 
       orderProducts.forEach((product, index) => {
-        const label = document.createElement('label');
-        label.className = 'order-product-option';
+        const row = document.createElement('div');
+        row.className = 'order-product-option';
 
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
         checkbox.name = 'products';
         checkbox.value = product.id;
         checkbox.dataset.index = String(index);
+        checkbox.id = `order-product-${index}`;
         checkbox.checked = checkedIds.has(product.id);
-        checkbox.addEventListener('change', updateOrderTotal);
 
-        const name = document.createElement('span');
+        const name = document.createElement('label');
         name.className = 'order-product-name';
+        name.htmlFor = checkbox.id;
         name.textContent = product.name;
 
         const price = document.createElement('span');
         price.className = 'order-product-option-price';
         price.textContent = formatPrice(product.price);
 
-        label.append(checkbox, name, price);
-        list.appendChild(label);
+        const quantity = document.createElement('div');
+        quantity.className = 'order-product-quantity';
+        quantity.setAttribute('aria-label', `Количество: ${product.name}`);
+
+        const minus = document.createElement('button');
+        minus.type = 'button';
+        minus.className = 'order-quantity-button';
+        minus.textContent = '−';
+        minus.setAttribute('aria-label', `Уменьшить количество: ${product.name}`);
+
+        const quantityInput = document.createElement('input');
+        quantityInput.type = 'number';
+        quantityInput.className = 'order-product-quantity-input';
+        quantityInput.min = '1';
+        quantityInput.max = '50';
+        quantityInput.step = '1';
+        quantityInput.inputMode = 'numeric';
+        quantityInput.dataset.productId = product.id;
+        quantityInput.value = String(savedQuantities.get(product.id) || 1);
+        quantityInput.setAttribute('aria-label', `Количество товара ${product.name}`);
+
+        const plus = document.createElement('button');
+        plus.type = 'button';
+        plus.className = 'order-quantity-button';
+        plus.textContent = '+';
+        plus.setAttribute('aria-label', `Увеличить количество: ${product.name}`);
+
+        minus.addEventListener('click', () => {
+          setOrderProductQuantity(row, Number(quantityInput.value) - 1);
+        });
+
+        plus.addEventListener('click', () => {
+          setOrderProductQuantity(row, Number(quantityInput.value) + 1);
+        });
+
+        quantityInput.addEventListener('change', () => {
+          setOrderProductQuantity(row, quantityInput.value);
+        });
+
+        quantityInput.addEventListener('input', () => {
+          const value = Number(quantityInput.value);
+          if (Number.isFinite(value) && value >= 1 && value <= 50) {
+            updateOrderTotal();
+          }
+        });
+
+        checkbox.addEventListener('change', () => {
+          if (checkbox.checked && Number(quantityInput.value) < 1) {
+            quantityInput.value = '1';
+          }
+          syncOrderProductRowState(row);
+          updateOrderTotal();
+        });
+
+        quantity.append(minus, quantityInput, plus);
+        row.append(checkbox, name, price, quantity);
+        list.appendChild(row);
+
+        syncOrderProductRowState(row);
       });
 
       if (pendingOrderQuery) {
@@ -3902,7 +4125,9 @@
 
       if (checkbox) {
         checkbox.checked = true;
-        checkbox.closest('.order-product-option')?.scrollIntoView({
+        const row = checkbox.closest('.order-product-option');
+        syncOrderProductRowState(row);
+        row?.scrollIntoView({
           block: 'nearest',
           behavior: 'smooth'
         });
@@ -3954,9 +4179,15 @@
       /* Сбрасываем выбранные десерты, включая позицию,
          которая могла автоматически отмечаться после нажатия на цену. */
       document
-        .querySelectorAll('#order-product-list input[type="checkbox"]')
-        .forEach(checkbox => {
-          checkbox.checked = false;
+        .querySelectorAll('#order-product-list .order-product-option')
+        .forEach(row => {
+          const checkbox = row.querySelector('input[type="checkbox"]');
+          const quantityInput = row.querySelector('.order-product-quantity-input');
+
+          if (checkbox) checkbox.checked = false;
+          if (quantityInput) quantityInput.value = '1';
+
+          syncOrderProductRowState(row);
         });
 
       pendingOrderQuery = '';
@@ -4016,14 +4247,38 @@
       )
         .map(input => {
           const index = Number(input.dataset.index);
-          return Number.isInteger(index) ? orderProducts[index] || null : null;
+          const product = Number.isInteger(index) ? orderProducts[index] || null : null;
+          if (!product) return null;
+
+          const row = input.closest('.order-product-option');
+          const quantityInput = row?.querySelector('.order-product-quantity-input');
+          const quantity = Math.max(
+            1,
+            Math.min(50, Number(quantityInput?.value) || 1)
+          );
+
+          return {
+            ...product,
+            quantity
+          };
         })
         .filter(Boolean);
     }
 
     function updateOrderTotal() {
       const products = getSelectedOrderProducts();
-      const productsTotal = products.reduce((sum, product) => sum + Number(product.price || 0), 0);
+      const productsTotal = products.reduce(
+        (sum, product) => (
+          sum + Number(product.price || 0) * Number(product.quantity || 1)
+        ),
+        0
+      );
+
+      const totalQuantity = products.reduce(
+        (sum, product) => sum + Number(product.quantity || 1),
+        0
+      );
+
       const isDelivery = document.getElementById('order-delivery')?.checked;
       const deliveryPrice = isDelivery ? ORDER_DELIVERY_PRICE : 0;
 
@@ -4034,7 +4289,7 @@
 
       if (summaryLabel) {
         summaryLabel.textContent = products.length
-          ? `Десерты (${products.length})`
+          ? `Десерты (${totalQuantity} шт.)`
           : 'Десерты';
       }
 
@@ -4096,7 +4351,10 @@
         phone: phone.value.trim(),
         date: document.getElementById('order-date')?.value || '',
         time: document.getElementById('order-time')?.value || '',
-        product_ids: products.map(product => product.id),
+        items: products.map(product => ({
+          product_id: product.id,
+          quantity: product.quantity
+        })),
         delivery_type: isDelivery ? 'delivery' : 'pickup',
         pickup_location: isDelivery
           ? null
