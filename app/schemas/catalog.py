@@ -16,6 +16,7 @@ class ProductSchema(BaseModel):
     id: str
     name: str
     slug: str
+    display_name: str | None = None
     price: Decimal
 
     weight_min_grams: int | None = None

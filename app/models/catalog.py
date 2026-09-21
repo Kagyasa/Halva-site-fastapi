@@ -82,6 +82,11 @@ class Product(Base):
         nullable=False,
     )
 
+    display_name: Mapped[str | None] = mapped_column(
+        String(120),
+        nullable=True,
+    )
+
     price: Mapped[Decimal] = mapped_column(
         Numeric(10, 2),
         nullable=False,

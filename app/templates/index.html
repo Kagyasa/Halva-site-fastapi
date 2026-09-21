@@ -1,0 +1,4421 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HALVA — кафе-кондитерская</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500&family=Old+Standard+TT:wght@400&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --pink: #df1375;
+      --ink: #1a1a1a;
+      --cream: rgba(255, 228, 188, .40);
+      --design-width: 1920;
+      --design-height: 5215;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      overflow-x: hidden;
+      background: #fff;
+      color: var(--ink);
+      font-family: "Inter", Arial, sans-serif;
+    }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    a { color: inherit; }
+
+    /* Pixel-accurate desktop canvas from Figma (1920 × 5215), scaled as one unit. */
+    #design-shell {
+      position: relative;
+      margin: 0 auto;
+      overflow: hidden;
+      background: #fff;
+    }
+    #design-stage {
+      position: absolute;
+      inset: 0 auto auto 0;
+      width: 1920px;
+      height: 5215px;
+      transform-origin: top left;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .old { font-family: "Old Standard TT", Georgia, serif; font-weight: 400; }
+    .light { font-weight: 300; }
+    .xlight { font-weight: 200; }
+
+    /* ================= HEADER ================= */
+    .site-header {
+      position: fixed;
+      z-index: 10000;
+      left: 50%;
+      top: 0;
+      width: 1920px;
+      height: 80px;
+      background: #fff;
+      border-bottom: 1px solid rgba(26, 26, 26, .10);
+      transform-origin: top center;
+      transition: none !important;
+      animation: none !important;
+    }
+    .header-logo {
+      position: absolute;
+      left: 64px;
+      top: 14px;
+      width: 116px;
+      height: 51px;
+      display: block;
+    }
+    .header-logo img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    .header-nav {
+      position: absolute;
+      left: 590px;
+      top: 0;
+      width: 740px;
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .header-nav a,
+    .footer-nav a {
+      text-decoration: none;
+    }
+    .header-nav a {
+      font-size: 19px;
+      line-height: 1;
+      color: #000;
+      transition: color .25s ease, transform .25s ease;
+    }
+    .header-nav a:hover { color: var(--pink); transform: translateY(-1px); }
+    .header-phone-icon {
+      position: absolute;
+      left: 1667px;
+      top: 29px;
+      width: 22px;
+      height: 22px;
+      object-fit: contain;
+    }
+    .header-phone {
+      position: absolute;
+      left: 1695px;
+      top: 27px;
+      font-size: 18px;
+      line-height: 26px;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    /* ================= HERO ================= */
+    .hero {
+      position: absolute;
+      left: 64px;
+      top: 62px;
+      width: 1792px;
+      height: 940px;
+      overflow: visible;
+    }
+    .hero-glow {
+      position: absolute;
+      z-index: 0;
+      left: -190px;
+      top: 26px;
+      width: 1510px;
+      height: 1080px;
+      pointer-events: none;
+      /* Saturated pink/cream glow with a soft top fade so it never touches the header. */
+      background:
+        radial-gradient(ellipse 74% 70% at 32% 43%,
+          rgba(253,201,227,.97) 0%,
+          rgba(253,201,227,.86) 22%,
+          rgba(253,201,227,.60) 40%,
+          rgba(253,201,227,.31) 57%,
+          rgba(253,201,227,.11) 72%,
+          rgba(253,201,227,0) 88%),
+        radial-gradient(ellipse 68% 60% at 46% 68%,
+          rgba(255,228,188,.90) 0%,
+          rgba(255,228,188,.68) 29%,
+          rgba(255,228,188,.40) 48%,
+          rgba(255,228,188,.16) 66%,
+          rgba(255,228,188,0) 84%);
+      filter: blur(34px);
+      -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,.12) 6%, #000 18%, #000 100%);
+      mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,.12) 6%, #000 18%, #000 100%);
+      transform: scale(1.04);
+      transform-origin: 40% 52%;
+    }
+    .hero-cake {
+      position: absolute;
+      z-index: 1;
+      left: 84px;
+      top: 106px;
+      width: 727px;
+      height: 832px;
+      object-fit: contain;
+      display: block;
+    }
+    .hero-copy {
+      position: absolute;
+      z-index: 2;
+      left: 1343.5px;
+      top: 441px;
+      width: 577px;
+      transform: translate(-50%, -50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      text-align: center;
+    }
+    .hero-kicker {
+      margin: 0;
+      font-family: "Old Standard TT", Georgia, serif;
+      font-size: 48px;
+      line-height: 1.08;
+      font-weight: 400;
+      font-synthesis: none;
+      letter-spacing: .2px;
+      color: #151515;
+      white-space: nowrap;
+    }
+    .hero-logo {
+      width: 479px;
+      height: 177px;
+      object-fit: contain;
+      display: block;
+    }
+    .hero-description {
+      margin: 0;
+      font-size: 28px;
+      line-height: 1.2;
+      font-weight: 300;
+      white-space: nowrap;
+    }
+    .hero-location {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      height: 31px;
+    }
+    .hero-location img { width: 31px; height: 31px; object-fit: contain; }
+    .hero-location span { font-size: 24px; font-weight: 300; line-height: 31px; }
+    .hero-order {
+      width: 187px;
+      height: 47px;
+      border: 0;
+      border-radius: 90px;
+      background: var(--pink);
+      color: #fff;
+      font-size: 30px;
+      line-height: 47px;
+      padding: 0;
+      text-align: center;
+      transition: transform .2s ease, filter .2s ease;
+    }
+    .hero-order:hover { transform: translateY(-2px); filter: brightness(.94); }
+
+    /* ================= ABOUT ================= */
+    .about {
+      position: absolute;
+      left: 64px;
+      top: 1000px;
+      width: 1792px;
+      height: 600px;
+      border-radius: 40px;
+      overflow: hidden;
+      background: linear-gradient(180deg, rgba(253,201,227,.70) 0%, rgba(255,255,255,.70) 99.25%);
+    }
+    .about-photo {
+      position: absolute;
+      left: 148px;
+      top: 80px;
+      width: 601px;
+      height: 440px;
+      object-fit: contain;
+    }
+    .about-title {
+      position: absolute;
+      left: 892px;
+      top: 55px;
+      width: 152px;
+      margin: 0;
+      font-family: "Old Standard TT", Georgia, serif;
+      font-size: 48px;
+      line-height: 1;
+      font-weight: 400;
+      text-align: center;
+    }
+    .about-text {
+      position: absolute;
+      left: 895px;
+      top: 163px;
+      width: 748px;
+      font-size: 20px;
+      line-height: 1.45;
+      font-weight: 300;
+      text-align: justify;
+    }
+    .about-text p { margin: 0 0 28px; }
+
+    /* ================= SHOWCASES ================= */
+    .showcases {
+      position: absolute;
+      left: 0;
+      top: 1600px;
+      width: 1920px;
+      height: 949px;
+      background: #fff;
+    }
+    .showcase-title {
+      position: absolute;
+      z-index: 3;
+      left: 852px;
+      top: 29px;
+      width: 217px;
+      margin: 0;
+      font-family: "Old Standard TT", Georgia, serif;
+      font-size: 40px;
+      line-height: 1;
+      font-weight: 400;
+    }
+    .showcase-tab {
+      position: absolute;
+      z-index: 3;
+      top: 104px;
+      height: 55px;
+      border: 0;
+      background: transparent;
+      padding: 0;
+      color: #000;
+    }
+    .showcase-tab.one { left: 405px; width: 190px; }
+    .showcase-tab.two { left: 1267px; width: 250px; }
+    .showcase-tab img {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 32px;
+      height: 32px;
+      object-fit: contain;
+    }
+    .showcase-tab span {
+      position: absolute;
+      left: 32px;
+      top: 4px;
+      font-family: "Old Standard TT", Georgia, serif;
+      font-size: 32px;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .showcase-active-line {
+      position: absolute;
+      z-index: 4;
+      left: 439px;
+      top: 152px;
+      width: 153px;
+      height: 4px;
+      object-fit: fill;
+      pointer-events: none;
+      transition:
+        left .72s cubic-bezier(.22,1,.36,1),
+        width .72s cubic-bezier(.22,1,.36,1),
+        opacity .28s ease;
+      will-change: left, width;
+    }
+    .showcase-card {
+      position: absolute;
+      z-index: 2;
+      left: 405px;
+      top: 182px;
+      width: 1108px;
+      height: 634px;
+      border-radius: 40px;
+      background: var(--cream);
+      backdrop-filter: blur(25px);
+      overflow: hidden;
+      padding: 57px 88px 45px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      column-gap: 78px;
+    }
+    .showcase-column h3 {
+      width: 100%;
+      margin: 0 0 28px;
+      font-size: 26px;
+      line-height: 1.2;
+      font-weight: 400;
+      text-align: center;
+    }
+    .showcase-table-head,
+    .showcase-row {
+      display: grid;
+      grid-template-columns: 1fr 102px;
+      column-gap: 20px;
+    }
+    .showcase-table-head {
+      font-size: 22px;
+      margin-bottom: 14px;
+    }
+    .showcase-row {
+      min-height: 37px;
+      align-items: start;
+      font-size: 18px;
+      line-height: 1.25;
+      font-weight: 200;
+    }
+    .showcase-row .price { white-space: nowrap; }
+    .showcase-empty { font-size: 18px; font-weight: 300; line-height: 1.45; margin: 0; }
+    .showcase-donut {
+      position: absolute;
+      z-index: 0;
+      left: 1410px;
+      top: -24px;
+      width: 460px;
+      height: 392px;
+      object-fit: contain;
+      opacity: .7;
+      transform: rotate(13deg);
+      transform-origin: center;
+      pointer-events: none;
+    }
+    .showcase-cupcake {
+      position: absolute;
+      z-index: 1;
+      left: 0px;
+      top: 370px;
+      width: 450px;
+      height: 547px;
+      object-fit: contain;
+      opacity: .7;
+      transform: rotate(-16.73deg);
+      transform-origin: center;
+      pointer-events: none;
+    }
+
+    /* ================= PRICE ================= */
+    .price-section {
+      position: absolute;
+      z-index: 4;
+      isolation: isolate;
+      left: 0;
+      top: 2549px;
+      width: 1920px;
+      height: 951px;
+      overflow: visible;
+      background: transparent;
+    }
+    .price-glow {
+      position: absolute;
+      z-index: 0;
+      left: 70px;
+      top: -60px;
+      width: 1780px;
+      height: 1180px;
+      border-radius: 50%;
+      pointer-events: none;
+      /* Figma pink/cream ellipse, intensified and feathered into white. */
+      background:
+        radial-gradient(ellipse 74% 67% at 57% 45%,
+          rgba(253,201,227,.97) 0%,
+          rgba(253,201,227,.82) 25%,
+          rgba(253,201,227,.55) 43%,
+          rgba(253,201,227,.30) 58%,
+          rgba(253,201,227,.12) 71%,
+          rgba(253,201,227,0) 87%),
+        radial-gradient(ellipse 69% 64% at 34% 60%,
+          rgba(255,228,188,.90) 0%,
+          rgba(255,228,188,.66) 30%,
+          rgba(255,228,188,.39) 50%,
+          rgba(255,228,188,.16) 67%,
+          rgba(255,228,188,0) 84%);
+      filter: blur(34px);
+      transform: scale(1.03);
+      transform-origin: center;
+    }
+    .price-title {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      margin: 0;
+      text-align: center;
+      font-family: "Old Standard TT", Georgia, serif;
+      font-size: 40px;
+      line-height: 1;
+      font-weight: 400;
+    }
+    .price-card {
+      position: absolute;
+      z-index: 10;
+      left: 405px;
+      width: 1108px;
+      border-radius: 40px;
+      background: rgba(255,255,255,.45);
+      backdrop-filter: blur(5px);
+      overflow: hidden;
+    }
+    .price-card.bento { top: 60px; height: 296px; }
+    .price-card.mousse { top: 373px; height: 246px; }
+    .price-card.other { top: 636px; height: 291px; }
+    .price-card-title {
+      position: absolute;
+      left: 34px;
+      top: 30px;
+      margin: 0;
+      font-size: 32px;
+      line-height: 1.2;
+      font-weight: 300;
+    }
+    .price-card-title small { font-size: 24px; }
+    .price-list {
+      position: absolute;
+      left: 36px;
+      top: 90px;
+      right: 44px;
+    }
+    .price-line {
+      position: relative;
+      min-height: 45px;
+      display: flex;
+      align-items: center;
+      padding-left: 42px;
+      padding-right: 166px;
+      font-size: 24px;
+      line-height: 1.18;
+      font-weight: 300;
+      white-space: nowrap;
+    }
+    .price-line::before {
+      content: "";
+      position: absolute;
+      left: 4px;
+      top: 4px;
+      width: 30px;
+      height: 30px;
+      background: url("/static/images/star.png") center / contain no-repeat;
+      opacity: .72;
+      pointer-events: none;
+    }
+    .price-pill {
+      position: absolute;
+      right: 44px;
+      top: 0;
+      width: 148px;
+      min-width: 148px;
+      height: 34px;
+      border: 0;
+      border-radius: 40px;
+      padding: 0;
+      background: var(--pink);
+      color: #fff;
+      font-size: 24px;
+      line-height: 34px;
+      font-weight: 500;
+      text-align: center;
+      white-space: nowrap;
+      transition: transform .22s ease, filter .22s ease;
+    }
+    .price-pill:hover { transform: translateY(-2px); filter: brightness(.96); }
+    .price-line > .price-pill {
+      right: 0;
+      width: 148px;
+      min-width: 148px;
+      max-width: 148px;
+    }
+    .bento > .price-pill {
+      right: 44px;
+      top: 33px;
+      width: 148px;
+      min-width: 148px;
+      max-width: 148px;
+    }
+    .price-raspberry {
+      position: absolute;
+      z-index: 20;
+      left: 50px;
+      top: 372px;
+      width: 258px;
+      height: 278px;
+      object-fit: contain;
+      opacity: .7;
+      transform: rotate(-26.16deg);
+      pointer-events: none;
+    }
+    .price-strawberry {
+      position: absolute;
+      z-index: 20;
+      left: 1590px;
+      top: -6px;
+      width: 261px;
+      height: 309px;
+      object-fit: contain;
+      opacity: .7;
+      transform: rotate(8.44deg);
+      pointer-events: none;
+    }
+    .price-cherries {
+      position: absolute;
+      z-index: 20;
+      left: 1588px;
+      top: 832px;
+      width: 219px;
+      height: 208px;
+      object-fit: contain;
+      opacity: .7;
+      transform: rotate(25deg);
+      pointer-events: none;
+    }
+    .price-hint {
+      position: absolute;
+      z-index: 9998;
+      left: 1510px;
+      top: 414px;
+      margin: 0;
+      color: #baa0a1;
+      font-size: 22px;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .price-hint-arrow {
+      position: absolute;
+      z-index: 9999;
+      left: 1472px;
+      top: 438px;
+      width: 32px;
+      height: 40px;
+      object-fit: contain;
+      pointer-events: none;
+      opacity: .42;
+      transform: rotate(12deg);
+      transform-origin: center;
+    }
+
+    /* ================= PRODUCTS ================= */
+    .products-section {
+      position: absolute;
+      z-index: 1;
+      left: 0;
+      top: 3500px;
+      width: 1920px;
+      height: 648px;
+      background: #fff;
+      overflow: hidden;
+    }
+    .products-title {
+      position: absolute;
+      left: 0;
+      top: 108px;
+      width: 100%;
+      margin: 0;
+      text-align: center;
+      font-family: "Old Standard TT", Georgia, serif;
+      font-size: 40px;
+      line-height: 1;
+      font-weight: 400;
+    }
+    .products-window {
+      position: absolute;
+      left: 160px;
+      top: 202px;
+      width: 1600px;
+      height: 400px;
+      overflow: hidden;
+    }
+    .products-track {
+      display: flex;
+      gap: 50px;
+      height: 400px;
+      transition: transform .45s ease;
+      will-change: transform;
+    }
+    .product-card {
+      width: 280px;
+      height: 400px;
+      flex: 0 0 280px;
+      border: 1px solid #afafaf;
+      background: #fff;
+      color: #000;
+      text-decoration: none;
+      position: relative;
+      overflow: hidden;
+    }
+    a.product-card {
+      cursor: pointer;
+    }
+    @media (hover: hover) and (pointer: fine) {
+      a.product-card {
+        transition: transform .2s ease, box-shadow .2s ease;
+      }
+      a.product-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 24px rgba(26, 26, 26, .08);
+      }
+    }
+    a.product-card:focus-visible {
+      outline: 2px solid #DF1375;
+      outline-offset: 3px;
+    }
+    .product-card-image {
+      position: absolute;
+      left: 19px;
+      top: 19px;
+      width: 240px;
+      height: 240px;
+      border: 1px solid #afafaf;
+      overflow: hidden;
+      background: #fff;
+    }
+    .product-card-image img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .product-card h3 {
+      position: absolute;
+      left: 19px;
+      top: 278px;
+      width: 244px;
+      margin: 0;
+      font-size: 20px;
+      line-height: 1.18;
+      font-weight: 300;
+    }
+    .product-card p {
+      position: absolute;
+      left: 19px;
+      top: 338px;
+      margin: 0;
+      font-size: 20px;
+      line-height: 1.2;
+      font-weight: 300;
+      white-space: nowrap;
+    }
+    .carousel-arrow {
+      position: absolute;
+      top: 367px;
+      width: 70px;
+      height: 70px;
+      border: 0;
+      border-radius: 50%;
+      background: #fff;
+      padding: 0;
+      font-family: Georgia, serif;
+      font-size: 58px;
+      line-height: 66px;
+      color: #777;
+    }
+    .carousel-arrow.prev { left: 100px; transform: rotate(180deg); }
+    .carousel-arrow.next { left: 1750px; }
+
+    /* ================= CONTACTS ================= */
+    .contacts-section {
+      position: absolute;
+      left: 0;
+      top: 4148px;
+      width: 1920px;
+      height: 623px;
+      background: #fff;
+    }
+    .contacts-title {
+      position: absolute;
+      left: 0;
+      top: 80px;
+      width: 100%;
+      margin: 0;
+      text-align: center;
+      font-family: "Old Standard TT", Georgia, serif;
+      font-size: 40px;
+      line-height: 1;
+      font-weight: 400;
+    }
+    .contacts-grid {
+      position: absolute;
+      left: 160px;
+      top: 181px;
+      width: 1600px;
+      height: 338px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+    }
+    .contact-card {
+      height: 338px;
+      border-radius: 40px;
+      background: var(--cream);
+      overflow: hidden;
+      padding: 48px 48px 42px;
+    }
+    .contact-card h3 {
+      margin: 0 0 14px;
+      font-family: "Old Standard TT", Georgia, serif;
+      font-size: 36px;
+      line-height: 46px;
+      font-weight: 400;
+    }
+    .contact-divider { width: 100%; height: 2px; background: var(--pink); margin-bottom: 18px; }
+    .contact-hours {
+      margin: 0 0 18px;
+      font-size: 19px;
+      line-height: 1.36;
+      font-weight: 300;
+    }
+    .contact-phone {
+      display: inline-block;
+      margin: 0 0 18px;
+      font-size: 20px;
+      line-height: 28px;
+      text-decoration: none;
+      color: var(--ink);
+    }
+    .contact-note {
+      margin: 0;
+      font-size: 17px;
+      line-height: 1.45;
+      font-weight: 300;
+    }
+
+    /* ================= FOOTER ================= */
+    .site-footer {
+      position: absolute;
+      left: 0;
+      top: 4799px;
+      width: 1920px;
+      height: 416px;
+      background: var(--pink);
+      color: #fff;
+      overflow: hidden;
+    }
+    .footer-content {
+      position: absolute;
+      left: 160px;
+      top: 70px;
+      width: 1600px;
+      height: 260px;
+      display: grid;
+      grid-template-columns: 350px 210px 420px 524px;
+      column-gap: 32px;
+    }
+    .footer-brand-title {
+      margin: 0 0 14px;
+      font-family: "Old Standard TT", Georgia, serif;
+      font-size: 52px;
+      line-height: 66px;
+      font-weight: 400;
+    }
+    .footer-brand-desc,
+    .footer-social,
+    .footer-hours,
+    .footer-order-text,
+    .footer-contacts-lines,
+    .footer-nav-list {
+      font-size: 18px;
+      line-height: 1.45;
+      font-weight: 300;
+      color: rgba(255,255,255,.96);
+    }
+    .footer-brand-desc { margin: 0 0 14px; color: rgba(255,255,255,.92); }
+    .footer-social { margin: 0 0 4px; text-decoration: none; display: block; font-weight: 400; color: #fff; }
+    .footer-label {
+      margin: 0 0 14px;
+      font-size: 14px;
+      line-height: 20px;
+      font-weight: 400;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+    }
+    .footer-nav-list a { display: block; margin: 0 0 2px; text-decoration: none; }
+    .footer-contacts-lines { margin: 0 0 14px; }
+    .footer-hours { margin: 0; }
+    .footer-order-text { margin: 0 0 14px; white-space: pre-line; }
+    .footer-order-btn {
+      width: 287px;
+      height: 64px;
+      border: 0;
+      border-radius: 32px;
+      background: #fff;
+      color: var(--pink);
+      font-size: 20px;
+      line-height: 64px;
+      padding: 0;
+      text-align: center;
+    }
+    .footer-divider {
+      position: absolute;
+      left: 154px;
+      top: 344px;
+      width: 1600px;
+      height: 1px;
+      background: rgba(255,255,255,.45);
+    }
+    .footer-bottom {
+      position: absolute;
+      left: 160px;
+      top: 374px;
+      width: 1600px;
+      margin: 0;
+      text-align: center;
+      font-size: 15px;
+      line-height: 22px;
+      font-weight: 300;
+      color: rgba(255,255,255,.90);
+    }
+    .footer-bottom a { color: inherit; }
+
+
+    .contacts-section,
+    .site-footer {
+      opacity: 0;
+      transform: translateY(120px);
+      transition:
+        opacity 1.05s cubic-bezier(.22,1,.36,1),
+        transform 1.05s cubic-bezier(.22,1,.36,1);
+      will-change: opacity, transform;
+    }
+    .contacts-section.contacts-footer-visible,
+    .site-footer.contacts-footer-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ================= UNIFORM SECTION SCALE ================= */
+    /* Slightly reduce complete blocks without changing their absolute document positions. */
+    /* Hero uses the original Figma scale.
+       Cake bottom: 62 + 106 + 832 = 1000px,
+       exactly where the "О НАС" section begins. */
+    .hero {
+      scale: 1;
+      transform-origin: top center;
+    }
+
+    /* All following blocks are reduced a little more, uniformly. */
+    .about,
+    .showcases,
+    .price-section,
+    .products-section,
+    .contacts-section {
+      scale: .94;
+      transform-origin: top center;
+    }
+
+    /* Footer keeps the full-width pink background; its content follows the same scale. */
+    .footer-content,
+    .footer-divider,
+    .footer-bottom {
+      scale: .94;
+      transform-origin: top center;
+    }
+
+    /* ================= SCROLL REVEAL ================= */
+    .reveal-block {
+      opacity: 0;
+      transform: translateY(120px);
+      transition:
+        opacity 1.05s cubic-bezier(.22,1,.36,1),
+        transform 1.05s cubic-bezier(.22,1,.36,1);
+      will-change: opacity, transform;
+    }
+    .about.reveal-block {
+      transform: translateY(190px);
+      transition-duration: 1.20s;
+    }
+    .reveal-block.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .hero.reveal-block {
+      transform: translateY(90px);
+      transition-duration: 1.05s;
+    }
+    .hero.reveal-block.is-visible {
+      transform: translateY(0);
+    }
+
+    /* Small-screen fallback: preserve the design instead of breaking it. */
+    @media (max-width: 700px) {
+      body { background: #fff; }
+    }
+  
+    /* ================= ORDER MODAL ================= */
+    body.modal-open { overflow: hidden; }
+
+    .order-modal {
+      position: fixed;
+      z-index: 20000;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 28px;
+      background: rgba(26, 26, 26, .38);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    .order-modal.is-open { display: flex; }
+
+    .order-modal-panel {
+      position: relative;
+      width: min(720px, calc(100vw - 44px));
+      max-height: calc(100vh - 40px);
+      overflow: auto;
+      border-radius: 28px;
+      background:
+        radial-gradient(circle at 92% 8%, rgba(253,201,227,.70) 0, rgba(253,201,227,0) 34%),
+        radial-gradient(circle at 5% 95%, rgba(255,228,188,.78) 0, rgba(255,228,188,0) 34%),
+        #fff;
+      box-shadow: 0 28px 90px rgba(54, 16, 35, .24);
+      padding: 30px 34px 28px;
+    }
+
+    .order-modal-close {
+      position: absolute;
+      right: 18px;
+      top: 16px;
+      width: 38px;
+      height: 38px;
+      border: 0;
+      border-radius: 50%;
+      background: rgba(255,255,255,.78);
+      color: #6f5a64;
+      font-size: 27px;
+      line-height: 35px;
+      font-weight: 300;
+      padding: 0;
+      transition: transform .2s ease, background .2s ease;
+    }
+    .order-modal-close:hover {
+      transform: rotate(6deg);
+      background: #fff;
+    }
+
+    .order-modal-title {
+      margin: 0 0 8px;
+      font-family: "Old Standard TT", Georgia, serif;
+      font-size: 36px;
+      line-height: 1.05;
+      font-weight: 400;
+      text-align: center;
+    }
+    .order-modal-subtitle {
+      margin: 0 auto 22px;
+      max-width: 560px;
+      text-align: center;
+      font-size: 12px;
+      line-height: 1.5;
+      font-weight: 300;
+      color: #645861;
+    }
+
+    .order-form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px 16px;
+    }
+
+    .order-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .order-field.full { grid-column: 1 / -1; }
+
+    .order-label {
+      font-size: 12px;
+      line-height: 1.2;
+      font-weight: 500;
+      color: #3c3338;
+    }
+
+    .order-input,
+    .order-select {
+      width: 100%;
+      height: 46px;
+      border: 1px solid rgba(26,26,26,.18);
+      border-radius: 11px;
+      background: rgba(255,255,255,.88);
+      color: #1a1a1a;
+      padding: 0 13px;
+      outline: none;
+      transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+    }
+    .order-input:focus,
+    .order-select:focus {
+      border-color: rgba(223,19,117,.72);
+      box-shadow: 0 0 0 4px rgba(223,19,117,.10);
+      background: #fff;
+    }
+
+    .order-delivery-switch {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      padding: 6px;
+      border: 1px solid rgba(26,26,26,.12);
+      border-radius: 15px;
+      background: rgba(255,255,255,.60);
+    }
+    .order-delivery-switch input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .order-delivery-switch label {
+      height: 38px;
+      border-radius: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 400;
+      cursor: pointer;
+      transition: background .2s ease, color .2s ease, box-shadow .2s ease;
+    }
+    .order-delivery-switch input:checked + label {
+      background: var(--pink);
+      color: #fff;
+      box-shadow: 0 8px 24px rgba(223,19,117,.18);
+    }
+
+    .order-conditional { display: none; }
+    .order-conditional.is-visible { display: flex; }
+
+    .order-summary {
+      grid-column: 1 / -1;
+      margin-top: 4px;
+      border-radius: 17px;
+      background: rgba(255,255,255,.62);
+      border: 1px solid rgba(223,19,117,.13);
+      padding: 13px 15px;
+    }
+    .order-summary-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 20px;
+      font-size: 12px;
+      line-height: 1.45;
+      color: #574b51;
+    }
+    .order-summary-row + .order-summary-row { margin-top: 7px; }
+    .order-summary-row.total {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(26,26,26,.10);
+      font-size: 18px;
+      color: #1a1a1a;
+    }
+    .order-summary-row.total strong {
+      font-size: 21px;
+      font-weight: 500;
+      color: var(--pink);
+      white-space: nowrap;
+    }
+
+    .order-consent {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin-top: 2px;
+      font-size: 12px;
+      line-height: 1.45;
+      color: #6a5d64;
+    }
+    .order-consent input {
+      width: 16px;
+      height: 16px;
+      margin: 1px 0 0;
+      accent-color: var(--pink);
+      flex: 0 0 16px;
+    }
+    .order-consent a { color: var(--pink); }
+
+    .order-submit {
+      grid-column: 1 / -1;
+      height: 48px;
+      border: 0;
+      border-radius: 24px;
+      background: var(--pink);
+      color: #fff;
+      font-size: 17px;
+      font-weight: 500;
+      transition: transform .2s ease, filter .2s ease;
+    }
+    .order-submit:hover { transform: translateY(-2px); filter: brightness(.96); }
+
+    .order-form-message {
+      grid-column: 1 / -1;
+      margin: -4px 0 0;
+      text-align: center;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    .order-form-message.success { color: #6a4b59; }
+    .order-form-message.error { color: #b42318; }
+
+    @media (max-width: 760px) {
+      .order-modal {
+        align-items: flex-end;
+        padding: 0;
+      }
+      .order-modal-panel {
+        width: 100%;
+        max-height: 92vh;
+        border-radius: 24px 24px 0 0;
+        padding: 24px 16px 20px;
+      }
+      .order-modal-title {
+        font-size: 29px;
+        padding: 0 34px;
+      }
+      .order-modal-subtitle {
+        font-size: 12px;
+        margin-bottom: 24px;
+      }
+      .order-form-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+      .order-field.full,
+      .order-summary,
+      .order-consent,
+      .order-submit,
+      .order-form-message {
+        grid-column: 1;
+      }
+      .order-modal-close {
+        right: 10px;
+        top: 9px;
+      }
+      .order-summary-row.total { font-size: 19px; }
+      .order-summary-row.total strong { font-size: 18px; }
+    }
+
+  
+
+    /* Figma-like dessert multi-select */
+    .order-product-list {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      max-height: 164px;
+      overflow-y: auto;
+      padding: 8px 9px;
+      border: 1px solid rgba(26,26,26,.16);
+      border-radius: 11px;
+      background: rgba(255,255,255,.78);
+      scrollbar-width: thin;
+      scrollbar-color: rgba(223,19,117,.34) transparent;
+    }
+
+    .order-product-option {
+      position: relative;
+      display: grid;
+      grid-template-columns: 15px minmax(0, 1fr) auto;
+      align-items: start;
+      gap: 7px;
+      min-height: 20px;
+      cursor: pointer;
+      user-select: none;
+      font-size: 11px;
+      line-height: 1.3;
+      color: #1a1a1a;
+    }
+
+    .order-product-option input {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 13px;
+      height: 13px;
+      margin: 1px 0 0;
+      border: 1px solid #afafaf;
+      border-radius: 3px;
+      background: #fff;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      flex: 0 0 13px;
+    }
+
+    .order-product-option input::before {
+      content: "";
+      width: 7px;
+      height: 4px;
+      border-left: 2px solid #fff;
+      border-bottom: 2px solid #fff;
+      transform: rotate(-45deg) scale(0);
+      transform-origin: center;
+      transition: transform .12s ease;
+      margin-top: -1px;
+    }
+
+    .order-product-option input:checked {
+      border-color: var(--pink);
+      background: var(--pink);
+    }
+
+    .order-product-option input:checked::before {
+      transform: rotate(-45deg) scale(1);
+    }
+
+    .order-product-option input:focus-visible {
+      outline: 2px solid rgba(223,19,117,.25);
+      outline-offset: 2px;
+    }
+
+    .order-product-name {
+      min-width: 0;
+      font-weight: 300;
+    }
+
+    .order-product-option-price {
+      padding-left: 8px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .order-product-loading,
+    .order-product-empty {
+      margin: 0;
+      padding: 4px 1px;
+      font-size: 11px;
+      line-height: 1.35;
+      color: #8f8389;
+    }
+
+    /* ================= ORDER MODAL — EXTRA COMPACT ================= */
+    /* Desktop: the panel is only a little smaller, but the inner UI is much denser. */
+    @media (min-width: 761px) {
+      .order-modal {
+        padding: 20px;
+      }
+
+      .order-modal-panel {
+        width: min(650px, calc(100vw - 40px));
+        max-height: calc(100vh - 32px);
+        border-radius: 24px;
+        padding: 20px 24px 18px;
+      }
+
+      .order-modal-close {
+        right: 14px;
+        top: 12px;
+        width: 30px;
+        height: 30px;
+        font-size: 22px;
+        line-height: 28px;
+      }
+
+      .order-modal-title {
+        margin-bottom: 4px;
+        font-size: 28px;
+      }
+
+      .order-modal-subtitle {
+        max-width: 500px;
+        margin-bottom: 14px;
+        font-size: 10px;
+        line-height: 1.4;
+      }
+
+      .order-form-grid {
+        gap: 9px 12px;
+      }
+
+      .order-field {
+        gap: 4px;
+      }
+
+      .order-label {
+        font-size: 10.5px;
+        line-height: 1.15;
+      }
+
+      .order-input,
+      .order-select {
+        height: 36px;
+        border-radius: 9px;
+        padding: 0 10px;
+        font-size: 12px;
+      }
+
+      .order-delivery-switch {
+        gap: 4px;
+        padding: 4px;
+        border-radius: 11px;
+      }
+
+      .order-delivery-switch label {
+        height: 30px;
+        border-radius: 8px;
+        font-size: 11px;
+      }
+
+      .order-summary {
+        margin-top: 1px;
+        border-radius: 13px;
+        padding: 9px 11px;
+      }
+
+      .order-summary-row {
+        gap: 12px;
+        font-size: 10px;
+        line-height: 1.35;
+      }
+
+      .order-summary-row + .order-summary-row {
+        margin-top: 4px;
+      }
+
+      .order-summary-row.total {
+        margin-top: 6px;
+        padding-top: 6px;
+        font-size: 14px;
+      }
+
+      .order-summary-row.total strong {
+        font-size: 16px;
+      }
+
+      .order-consent {
+        gap: 6px;
+        margin-top: 0;
+        font-size: 9.5px;
+        line-height: 1.3;
+      }
+
+      .order-consent input {
+        width: 13px;
+        height: 13px;
+        flex: 0 0 13px;
+      }
+
+      .order-submit {
+        height: 38px;
+        border-radius: 19px;
+        font-size: 14px;
+      }
+
+      .order-form-message {
+        margin-top: -2px;
+        font-size: 10px;
+        line-height: 1.3;
+      }
+    }
+
+    /* Keep the form comfortable to tap on a phone. */
+    @media (max-width: 760px) {
+      .order-modal-title {
+        font-size: 27px;
+      }
+
+      .order-modal-subtitle {
+        font-size: 12px;
+      }
+
+      .order-input,
+      .order-select {
+        height: 44px;
+        font-size: 14px;
+      }
+
+      .order-label {
+        font-size: 12px;
+      }
+
+      .order-delivery-switch label {
+        height: 38px;
+        font-size: 13px;
+      }
+
+      .order-submit {
+        height: 46px;
+        font-size: 16px;
+      }
+    }
+
+
+    @media (max-width: 760px) {
+      .order-product-list {
+        max-height: 190px;
+        gap: 8px;
+        padding: 10px;
+      }
+
+      .order-product-option {
+        grid-template-columns: 18px minmax(0, 1fr) auto;
+        gap: 8px;
+        font-size: 13px;
+        line-height: 1.35;
+      }
+
+      .order-product-option input {
+        width: 16px;
+        height: 16px;
+        border-radius: 3px;
+      }
+
+      .order-product-option input::before {
+        width: 8px;
+        height: 5px;
+      }
+
+      .order-product-loading,
+      .order-product-empty {
+        font-size: 13px;
+      }
+    }
+
+  
+    /* ================= ORDER MODAL — SMALLER WINDOW ================= */
+    @media (min-width: 761px) {
+      .order-modal-panel {
+        width: min(590px, calc(100vw - 36px));
+        max-height: calc(100vh - 26px);
+        border-radius: 22px;
+        padding: 17px 21px 16px;
+      }
+
+      /* Same heading size as the main section headings on the site. */
+      .order-modal-title {
+        font-size: 40px;
+        line-height: 1;
+        margin-bottom: 4px;
+      }
+
+      .order-modal-subtitle {
+        max-width: 470px;
+        margin-bottom: 11px;
+        font-size: 9.5px;
+        line-height: 1.35;
+      }
+
+      .order-modal-close {
+        right: 11px;
+        top: 10px;
+        width: 27px;
+        height: 27px;
+        font-size: 20px;
+        line-height: 25px;
+      }
+
+      .order-form-grid {
+        gap: 7px 10px;
+      }
+
+      .order-field {
+        gap: 3px;
+      }
+
+      .order-label {
+        font-size: 9.5px;
+      }
+
+      .order-input,
+      .order-select {
+        height: 32px;
+        border-radius: 8px;
+        padding: 0 9px;
+        font-size: 11px;
+      }
+
+      .order-delivery-switch {
+        padding: 3px;
+        border-radius: 9px;
+      }
+
+      .order-delivery-switch label {
+        height: 27px;
+        border-radius: 7px;
+        font-size: 10px;
+      }
+
+      .order-product-list {
+        max-height: 126px;
+        gap: 3px;
+        padding: 6px 7px;
+        border-radius: 9px;
+      }
+
+      .order-product-option {
+        grid-template-columns: 13px minmax(0, 1fr) auto;
+        gap: 6px;
+        min-height: 17px;
+        font-size: 9.5px;
+        line-height: 1.22;
+      }
+
+      .order-product-option input {
+        width: 11px;
+        height: 11px;
+        margin-top: 1px;
+      }
+
+      .order-product-option input::before {
+        width: 6px;
+        height: 3px;
+      }
+
+      .order-summary {
+        border-radius: 11px;
+        padding: 7px 9px;
+      }
+
+      .order-summary-row {
+        font-size: 9px;
+      }
+
+      .order-summary-row.total {
+        margin-top: 5px;
+        padding-top: 5px;
+        font-size: 12px;
+      }
+
+      .order-summary-row.total strong {
+        font-size: 14px;
+      }
+
+      .order-consent {
+        gap: 5px;
+        font-size: 8.5px;
+        line-height: 1.25;
+      }
+
+      .order-consent input {
+        width: 12px;
+        height: 12px;
+        flex: 0 0 12px;
+      }
+
+      .order-submit {
+        height: 34px;
+        border-radius: 17px;
+        font-size: 13px;
+      }
+
+      .order-form-message {
+        font-size: 9px;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .order-modal-title {
+        font-size: 32px;
+      }
+    }
+
+  
+    /* ================= ORDER MODAL — TITLE REFINEMENT ================= */
+    @media (min-width: 761px) {
+      .order-modal-title {
+        font-family: "Old Standard TT", Georgia, serif;
+        font-size: 29px;
+        line-height: 1.05;
+        font-weight: 400;
+        font-synthesis: none;
+        letter-spacing: 0;
+        margin-bottom: 5px;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .order-modal-title {
+        font-family: "Old Standard TT", Georgia, serif;
+        font-size: 27px;
+        line-height: 1.05;
+        font-weight: 400;
+        font-synthesis: none;
+        letter-spacing: 0;
+      }
+    }
+
+  
+    /* ================= ORDER MODAL — PREVIOUS STYLE, SMALLER ================= */
+    @media (min-width: 761px) {
+      .order-modal-panel {
+        width: min(540px, calc(100vw - 32px));
+        max-height: 86vh;
+        padding: 15px 18px 14px;
+        border-radius: 20px;
+      }
+
+      .order-modal-title {
+        font-size: 27px;
+        margin-bottom: 4px;
+      }
+
+      .order-modal-subtitle {
+        max-width: 440px;
+        margin-bottom: 9px;
+        font-size: 9px;
+        line-height: 1.3;
+      }
+
+      .order-modal-close {
+        right: 10px;
+        top: 9px;
+        width: 25px;
+        height: 25px;
+        font-size: 18px;
+        line-height: 23px;
+      }
+
+      .order-form-grid {
+        gap: 6px 9px;
+      }
+
+      .order-field {
+        gap: 3px;
+      }
+
+      .order-label {
+        font-size: 9px;
+      }
+
+      .order-input,
+      .order-select {
+        height: 30px;
+        border-radius: 7px;
+        padding: 0 8px;
+        font-size: 10.5px;
+      }
+
+      .order-product-list {
+        max-height: 150px;
+        gap: 3px;
+        padding: 5px 6px;
+        border-radius: 8px;
+      }
+
+      .order-product-option {
+        grid-template-columns: 12px minmax(0, 1fr) auto;
+        gap: 5px;
+        min-height: 16px;
+        font-size: 9px;
+        line-height: 1.2;
+      }
+
+      .order-product-option input {
+        width: 10px;
+        height: 10px;
+      }
+
+      .order-delivery-switch {
+        padding: 3px;
+        border-radius: 8px;
+      }
+
+      .order-delivery-switch label {
+        height: 25px;
+        border-radius: 6px;
+        font-size: 9.5px;
+      }
+
+      .order-summary {
+        padding: 6px 8px;
+        border-radius: 10px;
+      }
+
+      .order-summary-row {
+        font-size: 8.5px;
+      }
+
+      .order-summary-row.total {
+        margin-top: 4px;
+        padding-top: 4px;
+        font-size: 11px;
+      }
+
+      .order-summary-row.total strong {
+        font-size: 13px;
+      }
+
+      .order-consent {
+        gap: 4px;
+        font-size: 8px;
+        line-height: 1.2;
+      }
+
+      .order-consent input {
+        width: 11px;
+        height: 11px;
+        flex: 0 0 11px;
+      }
+
+      .order-submit {
+        height: 31px;
+        border-radius: 16px;
+        font-size: 12px;
+      }
+
+      .order-form-message {
+        font-size: 8.5px;
+      }
+    }
+
+
+    /* ================= MOBILE ADAPTATION ================= */
+    .mobile-menu-toggle,
+    .mobile-menu {
+      display: none;
+    }
+
+    @media (max-width: 760px) {
+      :root {
+        --mobile-header-height: 64px;
+      }
+
+      html,
+      body {
+        width: 100%;
+        max-width: 100%;
+        min-height: 100%;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch;
+        touch-action: pan-y;
+      }
+
+      body {
+        background: #fff;
+        position: static !important;
+      }
+
+      body.mobile-menu-open,
+      body.modal-open {
+        overflow: hidden !important;
+        touch-action: none;
+      }
+
+      #design-shell,
+      #design-stage {
+        touch-action: pan-y;
+      }
+
+      body.mobile-menu-open {
+        overflow: hidden;
+      }
+
+      /* The desktop version is a scaled 1920 px Figma canvas.
+         On phones we switch to a real document flow instead of shrinking it. */
+      #design-shell {
+        width: 100% !important;
+        height: auto !important;
+        margin: 0;
+        overflow: visible;
+      }
+
+      #design-stage {
+        position: relative;
+        inset: auto;
+        width: 100% !important;
+        height: auto !important;
+        transform: none !important;
+        overflow: visible;
+      }
+
+      .about,
+      .showcases,
+      .price-section,
+      .products-section,
+      .contacts-section,
+      .footer-content,
+      .footer-divider,
+      .footer-bottom {
+        scale: 1 !important;
+        transform-origin: center;
+      }
+
+      /* ---------- mobile header ---------- */
+      .site-header {
+        left: 0 !important;
+        top: 0;
+        width: 100% !important;
+        height: var(--mobile-header-height);
+        transform: none !important;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 16px;
+        background: #fff;
+        border-bottom: 1px solid rgba(26,26,26,.08);
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+      }
+
+      .header-logo {
+        position: relative;
+        left: auto;
+        top: auto;
+        width: 92px;
+        height: 42px;
+        z-index: 3;
+      }
+
+      .header-nav,
+      .header-phone-icon,
+      .header-phone {
+        display: none;
+      }
+
+      .mobile-menu-toggle {
+        position: relative;
+        z-index: 10002;
+        display: grid;
+        place-items: center;
+        width: 44px;
+        height: 44px;
+        padding: 0;
+        border: 0;
+        border-radius: 50%;
+        background: rgba(253,201,227,.32);
+        color: var(--ink);
+      }
+
+      .mobile-menu-toggle span,
+      .mobile-menu-toggle::before,
+      .mobile-menu-toggle::after {
+        content: "";
+        position: absolute;
+        width: 20px;
+        height: 1.5px;
+        border-radius: 2px;
+        background: currentColor;
+        transition: transform .28s ease, opacity .22s ease;
+      }
+
+      .mobile-menu-toggle::before { transform: translateY(-6px); }
+      .mobile-menu-toggle::after { transform: translateY(6px); }
+
+      .mobile-menu-toggle.is-open span { opacity: 0; }
+      .mobile-menu-toggle.is-open::before { transform: rotate(45deg); }
+      .mobile-menu-toggle.is-open::after { transform: rotate(-45deg); }
+
+      .mobile-menu {
+        position: fixed;
+        z-index: 10001;
+        inset: var(--mobile-header-height) 0 0;
+        display: flex;
+        flex-direction: column;
+        padding: 26px 22px 28px;
+        background:
+          radial-gradient(circle at 92% 8%, rgba(253,201,227,.62), transparent 34%),
+          radial-gradient(circle at 8% 92%, rgba(255,228,188,.62), transparent 36%),
+          #fff;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-12px);
+        transition: opacity .25s ease, transform .28s ease, visibility .25s ease;
+      }
+
+      .mobile-menu.is-open {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+      }
+
+      .mobile-menu-nav {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .mobile-menu-nav a {
+        padding: 13px 2px;
+        border-bottom: 1px solid rgba(26,26,26,.08);
+        font-family: "Old Standard TT", Georgia, serif;
+        font-size: 30px;
+        line-height: 1.05;
+        text-decoration: none;
+      }
+
+      .mobile-menu-phone {
+        margin-top: auto;
+        padding-top: 28px;
+        font-size: 17px;
+        text-decoration: none;
+      }
+
+      .mobile-menu-order {
+        width: 100%;
+        height: 50px;
+        margin-top: 16px;
+        border: 0;
+        border-radius: 25px;
+        background: var(--pink);
+        color: #fff;
+        font-size: 17px;
+        font-weight: 500;
+      }
+
+      /* ---------- shared mobile section rules ---------- */
+      .hero,
+      .about,
+      .showcases,
+      .price-section,
+      .products-section,
+      .contacts-section,
+      .site-footer {
+        position: relative;
+        left: auto;
+        top: auto;
+        width: 100%;
+      }
+
+      .hero,
+      .about,
+      .showcases,
+      .price-section,
+      .products-section,
+      .contacts-section {
+        height: auto;
+      }
+
+      .about-title,
+      .showcase-title,
+      .price-title,
+      .products-title,
+      .contacts-title {
+        font-size: 34px;
+        line-height: 1;
+      }
+
+      /* ---------- hero ---------- */
+      .hero {
+        min-height: 0;
+        margin-top: var(--mobile-header-height);
+        padding: 34px 18px 22px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        overflow: hidden;
+      }
+
+      .hero-glow {
+        left: -150px;
+        top: -10px;
+        width: 660px;
+        height: 720px;
+        filter: none !important;
+        transform: none;
+      }
+
+      .hero-copy {
+        position: relative;
+        left: auto;
+        top: auto;
+        width: 100%;
+        transform: none;
+        order: 1;
+        gap: 8px;
+        padding-top: 4px;
+      }
+
+      .hero-kicker {
+        font-size: clamp(24px, 7.5vw, 31px);
+        line-height: 1.05;
+        white-space: normal;
+      }
+
+      .hero-logo {
+        width: min(72vw, 300px);
+        height: auto;
+      }
+
+      .hero-description {
+        font-size: 18px;
+        line-height: 1.25;
+        white-space: normal;
+      }
+
+      .hero-location {
+        height: 26px;
+      }
+
+      .hero-location img {
+        width: 25px;
+        height: 25px;
+      }
+
+      .hero-location span {
+        font-size: 17px;
+        line-height: 26px;
+      }
+
+      .hero-order {
+        width: 168px;
+        height: 46px;
+        margin-top: 4px;
+        font-size: 20px;
+        line-height: 46px;
+      }
+
+      .hero-cake {
+        position: relative;
+        left: auto;
+        top: auto;
+        width: min(96vw, 430px);
+        height: auto;
+        margin: 8px auto -8px;
+        order: 2;
+      }
+
+      /* ---------- about ---------- */
+      .about {
+        width: calc(100% - 28px);
+        margin: 0 14px 0;
+        padding: 30px 20px 34px;
+        border-radius: 28px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      .about-title {
+        position: relative;
+        left: auto;
+        top: auto;
+        width: auto;
+        order: 1;
+        margin: 0 0 22px;
+      }
+
+      .about-photo {
+        position: relative;
+        left: auto;
+        top: auto;
+        width: 100%;
+        max-width: 390px;
+        height: auto;
+        margin: 0 auto 24px;
+        order: 2;
+      }
+
+      .about-text {
+        position: relative;
+        left: auto;
+        top: auto;
+        width: 100%;
+        order: 3;
+        font-size: 15px;
+        line-height: 1.55;
+        text-align: left;
+      }
+
+      .about-text p {
+        margin: 0 0 17px;
+      }
+
+      .about-text p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* ---------- showcases ---------- */
+      .showcases {
+        padding: 56px 14px 72px;
+        text-align: center;
+        overflow: hidden;
+      }
+
+      .showcase-title {
+        position: relative;
+        left: auto;
+        top: auto;
+        width: auto;
+        margin: 0 0 22px;
+      }
+
+      .showcase-tab,
+      .showcase-tab.one,
+      .showcase-tab.two {
+        position: relative;
+        left: auto;
+        top: auto;
+        width: auto;
+        height: 42px;
+        margin: 0 5px 20px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        border-bottom: 2px solid transparent;
+      }
+
+      .showcase-tab.active {
+        border-bottom-color: var(--pink);
+      }
+
+      .showcase-tab img {
+        position: relative;
+        left: auto;
+        top: auto;
+        width: 20px;
+        height: 20px;
+      }
+
+      .showcase-tab span {
+        position: relative;
+        left: auto;
+        top: auto;
+        font-size: 18px;
+        line-height: 1;
+      }
+
+      .showcase-active-line {
+        display: none;
+      }
+
+      .showcase-card {
+        position: relative;
+        left: auto;
+        top: auto;
+        width: 100%;
+        height: auto;
+        min-height: 0;
+        border-radius: 26px;
+        padding: 25px 18px 28px;
+        grid-template-columns: 1fr;
+        row-gap: 28px;
+        text-align: left;
+      }
+
+      .showcase-column {
+        min-width: 0;
+      }
+
+      .showcase-column h3 {
+        margin-bottom: 18px;
+        font-size: 23px;
+      }
+
+      .showcase-table-head,
+      .showcase-row {
+        grid-template-columns: minmax(0, 1fr) 86px;
+        column-gap: 12px;
+      }
+
+      .showcase-table-head {
+        font-size: 14px;
+        margin-bottom: 10px;
+      }
+
+      .showcase-row {
+        min-height: 32px;
+        font-size: 14px;
+        line-height: 1.3;
+      }
+
+      .showcase-empty {
+        font-size: 14px;
+      }
+
+      .showcase-donut {
+        left: auto;
+        right: -88px;
+        top: 18px;
+        width: 205px;
+        height: auto;
+        opacity: .34;
+      }
+
+      .showcase-cupcake {
+        left: -100px;
+        top: auto;
+        bottom: -115px;
+        width: 220px;
+        height: auto;
+        opacity: .30;
+      }
+
+      /* ---------- price ---------- */
+      .price-section {
+        padding: 52px 14px 64px;
+        overflow: hidden;
+      }
+
+      .price-glow {
+        left: -160px;
+        top: -30px;
+        width: 720px;
+        height: 1320px;
+        filter: blur(30px);
+        transform: none;
+      }
+
+      .price-title {
+        position: relative;
+        left: auto;
+        top: auto;
+        width: auto;
+        margin: 0 0 24px;
+      }
+
+      .price-card,
+      .price-card.bento,
+      .price-card.mousse,
+      .price-card.other {
+        position: relative;
+        left: auto;
+        top: auto;
+        width: 100%;
+        height: auto;
+        min-height: 0;
+        margin: 0 0 14px;
+        border-radius: 24px;
+        padding: 24px 18px 10px;
+        overflow: visible;
+      }
+
+      .price-card-title {
+        position: relative;
+        left: auto;
+        top: auto;
+        margin: 0 0 18px;
+        padding-right: 0;
+        font-size: 23px;
+        line-height: 1.2;
+      }
+
+      .price-card-title small {
+        font-size: 15px;
+      }
+
+      .price-list {
+        position: relative;
+        left: auto;
+        top: auto;
+        right: auto;
+      }
+
+      .price-line {
+        min-height: 0;
+        padding: 0 0 14px 26px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 10px;
+        align-items: start;
+        font-size: 15px;
+        line-height: 1.35;
+        white-space: normal;
+      }
+
+      .price-line::before {
+        left: 0;
+        top: 1px;
+        width: 18px;
+        height: 18px;
+      }
+
+      .price-pill,
+      .price-line > .price-pill,
+      .bento > .price-pill {
+        position: relative;
+        right: auto;
+        top: auto;
+        width: auto;
+        min-width: 104px;
+        max-width: none;
+        height: 32px;
+        padding: 0 12px;
+        font-size: 15px;
+        line-height: 32px;
+      }
+
+      .bento > .price-pill {
+        display: block;
+        margin: -2px 0 18px auto;
+      }
+
+      .price-hint,
+      .price-hint-arrow {
+        display: none;
+      }
+
+      .price-strawberry {
+        left: auto;
+        right: -58px;
+        top: 10px;
+        width: 150px;
+        height: auto;
+        opacity: .28;
+      }
+
+      .price-raspberry {
+        left: -56px;
+        top: 52%;
+        width: 128px;
+        height: auto;
+        opacity: .24;
+      }
+
+      .price-cherries {
+        left: auto;
+        right: -48px;
+        top: auto;
+        bottom: 6px;
+        width: 110px;
+        height: auto;
+        opacity: .24;
+      }
+
+      /* ---------- products ---------- */
+      .products-section {
+        position: relative;
+        z-index: 3;
+        margin-top: 0 !important;
+        padding: 54px 0 68px;
+        background: #fff;
+        overflow: hidden;
+      }
+
+      .products-title {
+        position: relative;
+        left: auto;
+        top: auto;
+        width: auto;
+        margin: 0 0 24px;
+      }
+
+      .products-window {
+        position: relative;
+        left: auto;
+        top: auto;
+        width: calc(100% - 40px);
+        height: 374px;
+        margin: 0 auto;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scroll-snap-type: x mandatory;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .products-window::-webkit-scrollbar {
+        display: none;
+      }
+
+      .products-track {
+        width: max-content;
+        height: 360px;
+        gap: 14px;
+        transform: none !important;
+        transition: none;
+        padding-right: 20px;
+      }
+
+      .product-card {
+        width: min(74vw, 268px);
+        height: 360px;
+        flex: 0 0 min(74vw, 268px);
+        scroll-snap-align: start;
+      }
+
+      .product-card-image {
+        left: 14px;
+        top: 14px;
+        width: calc(100% - 28px);
+        height: 230px;
+      }
+
+      .product-card h3 {
+        left: 15px;
+        top: 264px;
+        width: calc(100% - 30px);
+        font-size: 18px;
+      }
+
+      .product-card p {
+        left: 15px;
+        top: 320px;
+        font-size: 17px;
+      }
+
+      .carousel-arrow {
+        z-index: 5;
+        top: 52%;
+        width: 42px;
+        height: 42px;
+        font-size: 38px;
+        line-height: 39px;
+        box-shadow: 0 4px 18px rgba(0,0,0,.10);
+      }
+
+      .carousel-arrow.prev {
+        left: 5px;
+      }
+
+      .carousel-arrow.next {
+        left: auto;
+        right: 5px;
+      }
+
+      /* ---------- contacts ---------- */
+      .contacts-section {
+        padding: 54px 14px 64px;
+      }
+
+      .contacts-title {
+        position: relative;
+        left: auto;
+        top: auto;
+        width: auto;
+        margin: 0 0 24px;
+      }
+
+      .contacts-grid {
+        position: relative;
+        left: auto;
+        top: auto;
+        width: 100%;
+        height: auto;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 14px;
+      }
+
+      .contact-card {
+        height: auto;
+        min-height: 0;
+        border-radius: 24px;
+        padding: 26px 20px 28px;
+      }
+
+      .contact-card h3 {
+        margin-bottom: 10px;
+        font-size: 28px;
+        line-height: 1.15;
+      }
+
+      .contact-hours {
+        font-size: 15px;
+      }
+
+      .contact-phone {
+        font-size: 18px;
+      }
+
+      .contact-note {
+        font-size: 14px;
+      }
+
+      /* ---------- footer ---------- */
+      .site-footer {
+        height: auto;
+        min-height: 0;
+        padding: 42px 20px 26px;
+      }
+
+      .footer-content {
+        position: relative;
+        left: auto;
+        top: auto;
+        width: 100%;
+        height: auto;
+        display: grid;
+        grid-template-columns: 1fr;
+        row-gap: 30px;
+      }
+
+      .footer-brand-title {
+        font-size: 44px;
+        line-height: 1;
+      }
+
+      .footer-brand-desc,
+      .footer-social,
+      .footer-hours,
+      .footer-order-text,
+      .footer-contacts-lines,
+      .footer-nav-list {
+        font-size: 15px;
+      }
+
+      .footer-label {
+        margin-bottom: 10px;
+      }
+
+      .footer-order-btn {
+        width: 100%;
+        max-width: 330px;
+        height: 50px;
+        border-radius: 25px;
+        font-size: 17px;
+        line-height: 50px;
+      }
+
+      .footer-divider {
+        position: relative;
+        left: auto;
+        top: auto;
+        width: 100%;
+        margin: 32px 0 20px;
+      }
+
+      .footer-bottom {
+        position: relative;
+        left: auto;
+        top: auto;
+        width: 100%;
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      /* ---------- reveal animation ----------
+         On phones the blocks are shown immediately. This removes iOS/Yandex
+         scroll jank caused by large transformed layers and IntersectionObserver. */
+      .reveal-block,
+      .about.reveal-block,
+      .hero.reveal-block,
+      .contacts-section,
+      .site-footer,
+      .reveal-block.is-visible,
+      .hero.reveal-block.is-visible,
+      .contacts-section.contacts-footer-visible,
+      .site-footer.contacts-footer-visible {
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
+        will-change: auto !important;
+      }
+
+      /* ---------- order modal ---------- */
+      .order-modal {
+        align-items: flex-end;
+        padding: 0;
+      }
+
+      .order-modal-panel {
+        width: 100%;
+        max-height: min(92dvh, 760px);
+        border-radius: 24px 24px 0 0;
+        padding: 23px 16px max(20px, env(safe-area-inset-bottom));
+      }
+
+      .order-modal-title {
+        font-size: 27px;
+      }
+
+      .order-product-list {
+        max-height: 190px;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .hero {
+        padding-left: 14px;
+        padding-right: 14px;
+      }
+
+      .showcase-tab,
+      .showcase-tab.one,
+      .showcase-tab.two {
+        margin-left: 2px;
+        margin-right: 2px;
+      }
+
+      .showcase-tab span {
+        font-size: 16px;
+      }
+
+      .price-line {
+        grid-template-columns: 1fr;
+      }
+
+      .price-line > .price-pill {
+        justify-self: start;
+      }
+
+      .product-card {
+        width: 78vw;
+        flex-basis: 78vw;
+      }
+    }
+
+
+    /* ================= MOBILE POLISH — V5 ================= */
+    .contacts-mobile,
+    .mobile-footer-grid {
+      display: none;
+    }
+
+    @media (max-width: 760px) {
+      /* ---------- mobile navigation: full panel below header ---------- */
+      .site-header {
+        overflow: visible !important;
+      }
+
+      .mobile-menu {
+        position: fixed !important;
+        z-index: 10001 !important;
+        top: var(--mobile-header-height) !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: calc(100dvh - var(--mobile-header-height)) !important;
+        min-height: calc(100dvh - var(--mobile-header-height)) !important;
+        max-height: none !important;
+        padding: 20px 18px max(24px, env(safe-area-inset-bottom)) !important;
+        display: flex !important;
+        flex-direction: column;
+        overflow-y: auto !important;
+        overscroll-behavior: contain;
+        background: rgba(255, 252, 254, .985) !important;
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        box-shadow: 0 18px 48px rgba(28,17,24,.14);
+      }
+
+      .mobile-menu-nav {
+        display: flex;
+        flex-direction: column;
+        flex: 0 0 auto;
+      }
+
+      .mobile-menu-nav a {
+        display: block;
+        padding: 15px 2px;
+        border-bottom: 1px solid rgba(26,26,26,.08);
+        font-family: "Old Standard TT", Georgia, serif;
+        font-size: 24px;
+        line-height: 1.08;
+      }
+
+      .mobile-menu-phone {
+        margin-top: auto !important;
+        padding-top: 18px !important;
+        border-top: 1px solid rgba(26,26,26,.08);
+        font-size: 16px;
+      }
+
+      .mobile-menu-order {
+        height: 46px;
+        margin-top: 14px;
+        border-radius: 23px;
+        font-size: 16px;
+      }
+
+      /* ---------- hero: show more of the cake and separate About ---------- */
+      .hero {
+        padding: 24px 16px 0 !important;
+        overflow: hidden !important;
+        margin-bottom: 0 !important;
+        position: relative !important;
+        z-index: 1 !important;
+      }
+
+      .hero-copy {
+        max-width: 315px;
+        gap: 6px;
+        padding-top: 0;
+      }
+
+      .hero-kicker {
+        font-size: clamp(20px, 6.4vw, 27px) !important;
+        line-height: 1.04;
+      }
+
+      .hero-logo {
+        width: min(61vw, 244px) !important;
+      }
+
+      .hero-description {
+        font-size: 16px !important;
+        line-height: 1.22;
+      }
+
+      .hero-location {
+        height: 24px;
+      }
+
+      .hero-location img {
+        width: 22px;
+        height: 22px;
+      }
+
+      .hero-location span {
+        font-size: 16px !important;
+        line-height: 24px;
+      }
+
+      .hero-order {
+        width: 150px !important;
+        height: 41px !important;
+        margin-top: 3px;
+        font-size: 18px !important;
+        line-height: 41px !important;
+      }
+
+      .hero-cake {
+        position: relative !important;
+        z-index: 2 !important;
+        width: min(88vw, 374px) !important;
+        max-width: 374px;
+        height: auto !important;
+        margin: 12px auto 0 !important;
+        transform: translateX(-8px) !important;
+        display: block;
+      }
+
+      .about {
+        width: calc(100% - 24px) !important;
+        margin: 0 12px !important;
+        padding: 24px 16px 26px !important;
+        border-radius: 24px !important;
+        position: relative;
+        z-index: 1;
+      }
+
+      .about-title {
+        margin-bottom: 16px !important;
+        font-size: 32px !important;
+      }
+
+      .about-photo {
+        max-width: 340px !important;
+        margin-bottom: 18px !important;
+      }
+
+      .about-text {
+        font-size: 14px !important;
+        line-height: 1.5 !important;
+      }
+
+      .about-text p {
+        margin-bottom: 14px !important;
+      }
+
+      /* ---------- price: compact rows with a stable right price column ---------- */
+      .price-section {
+        position: relative !important;
+        z-index: 1 !important;
+        isolation: isolate !important;
+        padding: 48px 12px 52px !important;
+        overflow: hidden !important;
+        background: #fff !important;
+      }
+
+      /* Same pink/cream glow recipe as the Hero block, kept on the lowest layer. */
+      .price-section::before {
+        content: "" !important;
+        display: block !important;
+        position: absolute;
+        z-index: 0;
+        left: -28%;
+        top: -2%;
+        width: 150%;
+        height: 104%;
+        pointer-events: none;
+        background:
+          radial-gradient(ellipse 74% 70% at 32% 43%,
+            rgba(253,201,227,.97) 0%,
+            rgba(253,201,227,.86) 22%,
+            rgba(253,201,227,.60) 40%,
+            rgba(253,201,227,.31) 57%,
+            rgba(253,201,227,.11) 72%,
+            rgba(253,201,227,0) 88%),
+          radial-gradient(ellipse 68% 60% at 46% 68%,
+            rgba(255,228,188,.90) 0%,
+            rgba(255,228,188,.68) 29%,
+            rgba(255,228,188,.40) 48%,
+            rgba(255,228,188,.16) 66%,
+            rgba(255,228,188,0) 84%);
+        /* Radial gradients are already soft; skipping blur is much cheaper on iOS.
+           The mask makes the section fade into white instead of ending abruptly. */
+        filter: none !important;
+        -webkit-mask-image: linear-gradient(
+          to bottom,
+          transparent 0%,
+          rgba(0,0,0,.25) 5%,
+          #000 12%,
+          #000 88%,
+          rgba(0,0,0,.25) 95%,
+          transparent 100%
+        );
+        mask-image: linear-gradient(
+          to bottom,
+          transparent 0%,
+          rgba(0,0,0,.25) 5%,
+          #000 12%,
+          #000 88%,
+          rgba(0,0,0,.25) 95%,
+          transparent 100%
+        );
+        transform: scale(1.02);
+        transform-origin: 40% 52%;
+      }
+
+      .price-section::after {
+        display: none !important;
+        content: none !important;
+      }
+
+      .price-title {
+        position: relative;
+        z-index: 2;
+        margin: 0 0 20px !important;
+        font-size: 32px !important;
+      }
+
+      .price-glow {
+        display: none !important;
+      }
+
+      .price-strawberry,
+      .price-raspberry,
+      .price-cherries {
+        z-index: 1 !important;
+        pointer-events: none !important;
+      }
+
+      .price-card,
+      .price-card.bento,
+      .price-card.mousse,
+      .price-card.other {
+        position: relative;
+        z-index: 2;
+        display: block;
+        margin: 0 0 14px !important;
+        padding: 19px 15px 15px !important;
+        border-radius: 22px !important;
+        background: rgba(255,255,255,.46) !important;
+        box-shadow: none !important;
+        overflow: hidden !important;
+      }
+
+      .price-card-title {
+        margin: 0 0 14px !important;
+        font-size: 20px !important;
+        line-height: 1.2 !important;
+      }
+
+      .price-card-title small {
+        display: block;
+        margin-top: 3px;
+        font-size: 13px !important;
+      }
+
+      .price-list {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+      }
+
+      .price-line {
+        position: relative;
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) auto !important;
+        column-gap: 10px !important;
+        row-gap: 4px !important;
+        align-items: center !important;
+        min-height: 44px !important;
+        padding: 9px 9px 9px 29px !important;
+        border-radius: 14px;
+        background: rgba(255,255,255,.34);
+        border: 0;
+        font-size: 13px !important;
+        line-height: 1.36 !important;
+        white-space: normal !important;
+      }
+
+      .price-line::before {
+        left: 8px !important;
+        top: 13px !important;
+        width: 14px !important;
+        height: 14px !important;
+      }
+
+      .price-line > .price-pill {
+        position: relative !important;
+        right: auto !important;
+        top: auto !important;
+        justify-self: end !important;
+        align-self: center !important;
+        width: auto !important;
+        min-width: 94px !important;
+        max-width: none !important;
+        height: 30px !important;
+        margin: 0 !important;
+        padding: 0 10px !important;
+        border-radius: 17px !important;
+        font-size: 13px !important;
+        line-height: 30px !important;
+      }
+
+      /* Bento price belongs to the category, so keep it in the header area. */
+      .price-card.bento {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) auto;
+        column-gap: 10px;
+        align-items: start;
+      }
+
+      .price-card.bento .price-card-title {
+        grid-column: 1;
+        grid-row: 1;
+      }
+
+      .price-card.bento > .price-pill {
+        grid-column: 2;
+        grid-row: 1;
+        position: relative !important;
+        right: auto !important;
+        top: auto !important;
+        width: auto !important;
+        min-width: 96px !important;
+        height: 30px !important;
+        margin: 0 !important;
+        padding: 0 10px !important;
+        border-radius: 17px !important;
+        font-size: 13px !important;
+        line-height: 30px !important;
+      }
+
+      .price-card.bento .price-list {
+        grid-column: 1 / -1;
+      }
+
+      .price-strawberry {
+        right: -46px !important;
+        top: 6px !important;
+        width: 116px !important;
+        opacity: .18 !important;
+      }
+
+      .price-raspberry {
+        left: -45px !important;
+        width: 95px !important;
+        opacity: .14 !important;
+      }
+
+      .price-cherries {
+        right: -35px !important;
+        width: 84px !important;
+        opacity: .16 !important;
+      }
+
+      /* ---------- products: always above the price background ---------- */
+      .products-section {
+        position: relative !important;
+        z-index: 20 !important;
+        isolation: isolate !important;
+        background: #fff !important;
+      }
+
+      .products-section::before {
+        content: "";
+        position: absolute;
+        z-index: -1;
+        inset: 0;
+        background: #fff;
+        pointer-events: none;
+      }
+
+      /* ---------- contacts: desktop cards stay intact; mobile uses location tabs ---------- */
+      .contacts-section {
+        padding: 48px 12px 48px !important;
+      }
+
+      .contacts-title {
+        margin: 0 0 18px !important;
+        font-size: 32px !important;
+      }
+
+      .contacts-grid {
+        display: none !important;
+      }
+
+      .contacts-mobile {
+        display: block;
+      }
+
+      .contacts-mobile-tabs {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px 18px;
+        margin: 0 0 16px;
+      }
+
+      .contact-mobile-tab {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        min-height: 34px;
+        padding: 0 0 5px;
+        border: 0;
+        border-bottom: 2px solid transparent;
+        background: transparent;
+        color: var(--ink);
+      }
+
+      .contact-mobile-tab.active {
+        border-bottom-color: var(--pink);
+      }
+
+      .contact-mobile-tab img {
+        width: 18px;
+        height: 18px;
+        object-fit: contain;
+      }
+
+      .contact-mobile-tab span {
+        font-family: "Old Standard TT", Georgia, serif;
+        font-size: 18px;
+        line-height: 1;
+      }
+
+      .contact-mobile-card {
+        border-radius: 24px;
+        background: var(--cream);
+        padding: 22px 18px 23px;
+      }
+
+      .contact-mobile-card h3 {
+        margin: 0 0 10px;
+        font-family: "Old Standard TT", Georgia, serif;
+        font-size: 27px;
+        line-height: 1.1;
+        font-weight: 400;
+      }
+
+      .contact-mobile-card .contact-divider {
+        margin-bottom: 13px;
+      }
+
+      .contact-mobile-card .contact-hours {
+        margin-bottom: 12px;
+        font-size: 14px;
+        line-height: 1.42;
+      }
+
+      .contact-mobile-card .contact-phone {
+        margin-bottom: 12px;
+        font-size: 16px;
+        line-height: 1.3;
+      }
+
+      .contact-mobile-card .contact-note {
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      /* Any residual area below the final footer should keep the footer color. */
+      body,
+      #design-shell {
+        background: var(--pink) !important;
+      }
+
+      #design-stage,
+      .hero,
+      .about,
+      .showcases,
+      .price-section,
+      .products-section,
+      .contacts-section {
+        /* Sections keep their own backgrounds; this only affects space after the footer. */
+      }
+
+      /* ---------- footer: true two-column mobile layout ---------- */
+      .site-footer {
+        padding: 20px 14px 14px !important;
+        margin: 0 !important;
+        border-bottom: 0 !important;
+      }
+
+      .site-footer > .footer-content {
+        display: none !important;
+      }
+
+      .mobile-footer-grid {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 18px;
+        width: 100%;
+      }
+
+      .mobile-footer-col {
+        min-width: 0;
+      }
+
+      .mobile-footer-brand {
+        margin: 0 0 8px;
+        font-family: "Old Standard TT", Georgia, serif;
+        font-size: 30px;
+        line-height: 1;
+        font-weight: 400;
+      }
+
+      .mobile-footer-desc,
+      .mobile-footer-link,
+      .mobile-footer-text,
+      .mobile-footer-nav a {
+        font-size: 11.5px;
+        line-height: 1.42;
+        font-weight: 300;
+        color: rgba(255,255,255,.96);
+      }
+
+      .mobile-footer-desc,
+      .mobile-footer-text {
+        margin: 0 0 9px;
+      }
+
+      .mobile-footer-link {
+        display: block;
+        margin: 0 0 2px;
+        text-decoration: none;
+        overflow-wrap: anywhere;
+      }
+
+      .mobile-footer-label {
+        margin: 16px 0 7px;
+        font-size: 10.5px;
+        line-height: 1.2;
+        font-weight: 400;
+        letter-spacing: .09em;
+        text-transform: uppercase;
+      }
+
+      .mobile-footer-nav {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+
+      .mobile-footer-nav a {
+        text-decoration: none;
+      }
+
+      .mobile-footer-order-btn {
+        width: 100%;
+        height: 38px;
+        margin-top: 9px;
+        border: 0;
+        border-radius: 20px;
+        background: #fff;
+        color: var(--pink);
+        font-size: 12.5px;
+        line-height: 38px;
+        padding: 0 10px;
+        text-align: center;
+      }
+
+      .footer-divider {
+        margin: 14px 0 10px !important;
+      }
+
+      .footer-bottom {
+        font-size: 10.5px !important;
+        line-height: 1.35 !important;
+        text-align: center;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .mobile-footer-grid {
+        gap: 12px;
+      }
+
+      .mobile-footer-brand {
+        font-size: 27px;
+      }
+
+      .mobile-footer-desc,
+      .mobile-footer-link,
+      .mobile-footer-text,
+      .mobile-footer-nav a {
+        font-size: 10.5px;
+      }
+
+      .mobile-footer-label {
+        font-size: 10px;
+      }
+    }
+
+
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <a class="header-logo js-scroll" href="#home" data-y="0"><img src="/static/images/logo.png" alt="HALVA"></a>
+    <nav class="header-nav">
+      <a class="js-scroll" href="#home" data-y="0">Главная</a>
+      <a class="js-scroll" href="#about" data-y="1000">О нас</a>
+      <a class="js-scroll" href="#showcases" data-y="1629">Витрины</a>
+      <a class="js-scroll" href="#price" data-y="2549">Прайс</a>
+      <a class="js-scroll" href="#products-section" data-y="3500">Товары</a>
+      <a class="js-scroll" href="#contacts" data-y="4148">Контакты</a>
+    </nav>
+    <img class="header-phone-icon" src="/static/images/phone.png" alt="">
+    <a class="header-phone" href="tel:+79227330330">+7 (922) 733-03-30</a>
+
+    <button
+      class="mobile-menu-toggle"
+      id="mobile-menu-toggle"
+      type="button"
+      aria-label="Открыть меню"
+      aria-expanded="false"
+      aria-controls="mobile-menu"
+      onclick="toggleMobileMenu()"
+    ><span></span></button>
+
+    <div class="mobile-menu" id="mobile-menu" aria-hidden="true">
+      <nav class="mobile-menu-nav" aria-label="Мобильная навигация">
+        <a class="js-scroll" href="#home" data-y="0">Главная</a>
+        <a class="js-scroll" href="#about" data-y="1000">О нас</a>
+        <a class="js-scroll" href="#showcases" data-y="1629">Витрины</a>
+        <a class="js-scroll" href="#price" data-y="2549">Прайс</a>
+        <a class="js-scroll" href="#products-section" data-y="3500">Товары</a>
+        <a class="js-scroll" href="#contacts" data-y="4148">Контакты</a>
+      </nav>
+      <a class="mobile-menu-phone" href="tel:+79227330330">+7 (922) 733-03-30</a>
+      <button class="mobile-menu-order" type="button" onclick="closeMobileMenu(); openOrderModal();">Оставить заявку</button>
+    </div>
+  </header>
+
+  <div id="design-shell">
+    <div id="design-stage">
+
+      <section class="hero reveal-block" id="home">
+        <div class="hero-glow"></div>
+        <img class="hero-cake" src="/static/images/hero.png" alt="Торт HALVA">
+        <div class="hero-copy">
+          <h1 class="hero-kicker">КАФЕ-КОНДИТЕРСКАЯ</h1>
+          <img class="hero-logo" src="/static/images/logo.png" alt="HALVA">
+          <p class="hero-description">Торты и десерты на заказ</p>
+          <div class="hero-location"><img src="/static/images/location.png" alt=""><span>Снежинск</span></div>
+          <button class="hero-order" type="button" onclick="openOrderModal()">Заказать</button>
+        </div>
+      </section>
+
+      <section class="about reveal-block" id="about">
+        <img class="about-photo" src="/static/images/about_us.png" alt="Команда кафе-кондитерской HALVA">
+        <h2 class="about-title">О НАС</h2>
+        <div class="about-text">
+          <p>Семейная кафе-кондитерская с собственным производством и почти 10-летней историей.</p>
+          <p>Наша история началась в 2016 году с домашних тортов на заказ. Сегодня «Халва» — это две уютные кафе-кондитерские в Снежинске, собственное производство с профессиональной командой кондитеров и поваров, авторские десерты, торты на заказ, завтраки, обеды и напитки.</p>
+          <p>Мы верим, что вкус и качество всегда важнее экономии, поэтому не используем растительные сливки, дешёвые глазури вместо шоколада и не заменяем качественные ингредиенты более дешёвыми аналогами.</p>
+        </div>
+      </section>
+
+      <section class="showcases reveal-block" id="showcases">
+        <h2 class="showcase-title">ВИТРИНЫ</h2>
+        <button class="showcase-tab one active" type="button" data-address="Ленина" onclick="loadShowcase('Ленина', this)">
+          <img src="/static/images/pin.png" alt=""><span>Ленина 15</span>
+        </button>
+        <button class="showcase-tab two" type="button" data-address="Забабахина" onclick="loadShowcase('Забабахина', this)">
+          <img src="/static/images/pin.png" alt=""><span>Забабахина 42</span>
+        </button>
+        <img id="showcase-active-line" class="showcase-active-line" src="/static/images/Line.svg" alt="">
+
+        <img class="showcase-donut" src="/static/images/donut.png" alt="">
+        <img class="showcase-cupcake" src="/static/images/cupcake.png" alt="">
+
+        <div class="showcase-card">
+          <div class="showcase-column">
+            <h3>Десерты</h3>
+            <div class="showcase-table-head"><span>Товар</span><span>Цена</span></div>
+            <div id="showcase-desserts"></div>
+          </div>
+          <div class="showcase-column">
+            <h3>Сытная еда</h3>
+            <div class="showcase-table-head"><span>Товар</span><span>Цена</span></div>
+            <div id="showcase-food"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="price-section reveal-block" id="price">
+        <div class="price-glow"></div>
+        <h2 class="price-title">ПРАЙС ДЛЯ ЗАКАЗА</h2>
+
+        <img class="price-strawberry" src="/static/images/strawberry.png" alt="">
+        <img class="price-raspberry" src="/static/images/raspberry.png" alt="">
+        <img class="price-cherries" src="/static/images/cherries.png" alt="">
+        <article class="price-card bento">
+          <h3 class="price-card-title">Бенто-торты <small>(2-3 порции)</small></h3>
+          <button class="price-pill" onclick="openOrderModal('Бенто')" type="button">1100 Руб.</button>
+          <div class="price-list">
+            <div class="price-line">Клубника-пломбир</div>
+            <div class="price-line">Красный бархат</div>
+            <div class="price-line">Вишня-шоколад</div>
+            <div class="price-line">Банан-карамель</div>
+          </div>
+        </article>
+
+        <article class="price-card mousse">
+          <h3 class="price-card-title">Муссовые торты</h3>
+          <div class="price-list">
+            <div class="price-line">Размер S&nbsp; / &nbsp;D 18 см&nbsp; / &nbsp;H 5-6 см&nbsp; / &nbsp;0,8-1 кг&nbsp; / &nbsp;8-12 порций<button class="price-pill" onclick="openOrderModal('Муссовый торт S')" type="button">2800 Руб.</button></div>
+            <div class="price-line">Размер L&nbsp; / &nbsp;D 22 см&nbsp; / &nbsp;H 5-6 см&nbsp; / &nbsp;1,3-1,5 кг&nbsp; / &nbsp;12-16 порций<button class="price-pill" onclick="openOrderModal('Муссовый торт L')" type="button">4000 Руб.</button></div>
+            <div class="price-line">Размер XL два яруса&nbsp; / &nbsp;D 18+22 см&nbsp; / &nbsp;2,3-2,5 кг&nbsp; / &nbsp;18-28 порций<button class="price-pill" onclick="openOrderModal('Муссовый торт XL')" type="button">6800 Руб.</button></div>
+          </div>
+        </article>
+
+        <article class="price-card other">
+          <h3 class="price-card-title">Другие десерты</h3>
+          <div class="price-list">
+            <div class="price-line">Набор пирожных</div>
+            <div class="price-line">Чизкейк “San Sebastian”&nbsp; / &nbsp;2 кг&nbsp; / &nbsp;12 порций<button class="price-pill" onclick="openOrderModal('San Sebastian')" type="button">4300 Руб.</button></div>
+            <div class="price-line">Меренговый рулет стандарт&nbsp; / &nbsp;20*10 см&nbsp; / &nbsp;~600 г<button class="price-pill" onclick="openOrderModal('Меренговый рулет стандарт')" type="button">1700 Руб.</button></div>
+            <div class="price-line">Меренговый рулет макси&nbsp; / &nbsp;30*10 см&nbsp; / &nbsp;~900 г<button class="price-pill" onclick="openOrderModal('Меренговый рулет макси')" type="button">2500 Руб.</button></div>
+          </div>
+        </article>
+
+        <p class="price-hint">Нажми, чтобы заказать</p>
+        <img class="price-hint-arrow" src="/static/images/arrow.png" alt="">
+      </section>
+
+      <section class="products-section reveal-block" id="products-section">
+        <h2 class="products-title">ТОВАРЫ</h2>
+        <button class="carousel-arrow prev" type="button" aria-label="Предыдущие товары" onclick="scrollProducts(-1)">›</button>
+        <div class="products-window"><div class="products-track" id="products"></div></div>
+        <button class="carousel-arrow next" type="button" aria-label="Следующие товары" onclick="scrollProducts(1)">›</button>
+      </section>
+
+      <section class="contacts-section" id="contacts">
+        <h2 class="contacts-title">КОНТАКТЫ</h2>
+
+        <div class="contacts-mobile" aria-label="Контакты кафе">
+          <div class="contacts-mobile-tabs" role="tablist" aria-label="Выберите адрес">
+            <button class="contact-mobile-tab active" type="button" data-contact-key="lenina" role="tab" aria-selected="true" onclick="switchMobileContact('lenina', this)">
+              <img src="/static/images/pin.png" alt="">
+              <span>Ленина 15</span>
+            </button>
+            <button class="contact-mobile-tab" type="button" data-contact-key="zababakhina" role="tab" aria-selected="false" onclick="switchMobileContact('zababakhina', this)">
+              <img src="/static/images/pin.png" alt="">
+              <span>Забабахина 42</span>
+            </button>
+          </div>
+
+          <article class="contact-mobile-card">
+            <h3 id="mobile-contact-title">Ленина, 15</h3>
+            <div class="contact-divider"></div>
+            <p class="contact-hours" id="mobile-contact-hours">Будни: 08:00–21:00<br>Выходные и праздники: 09:00–21:00</p>
+            <a class="contact-phone" id="mobile-contact-phone" href="tel:+79227330330">+7 (922) 733-03-30</a>
+            <p class="contact-note" id="mobile-contact-note">Предзаказ тортов, десертов и актуальное наличие — в сообщениях сообщества VK, TG/MAX или по телефону.</p>
+          </article>
+        </div>
+
+        <div class="contacts-grid">
+          <article class="contact-card">
+            <h3>Ленина, 15</h3>
+            <div class="contact-divider"></div>
+            <p class="contact-hours">Будни: 08:00–21:00<br>Выходные и праздники: 09:00–21:00</p>
+            <a class="contact-phone" id="contact-phone-lenina" href="tel:+79227330330">+7 (922) 733-03-30</a>
+            <p class="contact-note">Предзаказ тортов, десертов и актуальное наличие — в сообщениях сообщества VK, TG/MAX или по телефону.</p>
+          </article>
+          <article class="contact-card">
+            <h3>Забабахина, 42</h3>
+            <div class="contact-divider"></div>
+            <p class="contact-hours">Будни: 08:00–21:00<br>Выходные и праздники: 09:00–21:00</p>
+            <a class="contact-phone" id="contact-phone-zababakhina" href="tel:+79227200220">+7 (922) 720-02-20</a>
+            <p class="contact-note">Предзаказ тортов, десертов и актуальное наличие — в сообщениях сообщества VK, TG/MAX или по телефону.</p>
+          </article>
+        </div>
+      </section>
+
+      <footer class="site-footer">
+        <div class="footer-content">
+          <div>
+            <h2 class="footer-brand-title">ХАЛВА</h2>
+            <p class="footer-brand-desc">Семейная кафе-кондитерская<br>в Снежинске</p>
+            <a class="footer-social" href="#">VK&nbsp; · &nbsp;vk.ru/halva_tort_snz</a>
+            <a class="footer-social" href="#">TG&nbsp; · &nbsp;vk.ru/halva_tort_snz</a>
+            <a class="footer-social" href="#">MAX&nbsp; · &nbsp;vk.ru/halva_tort_snz</a>
+          </div>
+          <div class="footer-nav">
+            <p class="footer-label">НАВИГАЦИЯ</p>
+            <div class="footer-nav-list">
+              <a class="js-scroll" href="#home" data-y="0">Главная</a>
+              <a class="js-scroll" href="#about" data-y="1000">О нас</a>
+              <a class="js-scroll" href="#showcases" data-y="1629">Витрины</a>
+              <a class="js-scroll" href="#price" data-y="2549">Прайс</a>
+              <a class="js-scroll" href="#products-section" data-y="3500">Товары</a>
+              <a class="js-scroll" href="#contacts" data-y="4148">Контакты</a>
+            </div>
+          </div>
+          <div>
+            <p class="footer-label">КОНТАКТЫ</p>
+            <div class="footer-contacts-lines">Ленина, 15&nbsp; · &nbsp;+7 (922) 733-03-30<br>Забабахина, 42&nbsp; · &nbsp;+7 (922) 720-02-20</div>
+            <p class="footer-hours">Будни 08:00–21:00<br>Выходные 09:00–21:00</p>
+          </div>
+          <div>
+            <p class="footer-label">ЗАКАЗ ДЕСЕРТОВ</p>
+            <p class="footer-order-text">Приём заказов в сообщениях группы VK:
+ПН–СБ 09:00–19:00
+
+Доставка по Снежинску — 150 ₽</p>
+            <button class="footer-order-btn" type="button" onclick="openOrderModal()">Оставить заявку</button>
+          </div>
+        </div>
+
+        <div class="mobile-footer-grid" aria-label="Информация в подвале сайта">
+          <div class="mobile-footer-col">
+            <h2 class="mobile-footer-brand">ХАЛВА</h2>
+            <p class="mobile-footer-desc">Семейная кафе-кондитерская<br>в Снежинске</p>
+            <a class="mobile-footer-link" href="#">VK · vk.ru/halva_tort_snz</a>
+            <a class="mobile-footer-link" href="#">TG · vk.ru/halva_tort_snz</a>
+            <a class="mobile-footer-link" href="#">MAX · vk.ru/halva_tort_snz</a>
+
+            <p class="mobile-footer-label">Контакты</p>
+            <p class="mobile-footer-text">Ленина, 15<br>+7 (922) 733-03-30</p>
+            <p class="mobile-footer-text">Забабахина, 42<br>+7 (922) 720-02-20</p>
+            <p class="mobile-footer-text">Будни 08:00–21:00<br>Выходные 09:00–21:00</p>
+          </div>
+
+          <div class="mobile-footer-col">
+            <p class="mobile-footer-label" style="margin-top:0;">Навигация</p>
+            <nav class="mobile-footer-nav">
+              <a class="js-scroll" href="#home" data-y="0">Главная</a>
+              <a class="js-scroll" href="#about" data-y="1000">О нас</a>
+              <a class="js-scroll" href="#showcases" data-y="1629">Витрины</a>
+              <a class="js-scroll" href="#price" data-y="2549">Прайс</a>
+              <a class="js-scroll" href="#products-section" data-y="3500">Товары</a>
+              <a class="js-scroll" href="#contacts" data-y="4148">Контакты</a>
+            </nav>
+
+            <p class="mobile-footer-label">Заказ десертов</p>
+            <p class="mobile-footer-text">ПН–СБ 09:00–19:00<br>Доставка — 150 ₽</p>
+            <button class="mobile-footer-order-btn" type="button" onclick="openOrderModal()">Оставить заявку</button>
+          </div>
+        </div>
+
+        <div class="footer-divider"></div>
+        <p class="footer-bottom">© 2026 Халва&nbsp; · &nbsp;<a href="#" onclick="event.preventDefault(); openPrivacyPolicy();">Политика конфиденциальности</a></p>
+      </footer>
+
+    </div>
+  </div>
+
+
+  <div class="order-modal" id="order-modal" aria-hidden="true">
+    <div class="order-modal-panel" role="dialog" aria-modal="true" aria-labelledby="order-modal-title">
+      <button class="order-modal-close" type="button" aria-label="Закрыть форму заказа" onclick="closeOrderModal()">×</button>
+
+      <h2 class="order-modal-title" id="order-modal-title">Заявка на заказ</h2>
+      <p class="order-modal-subtitle">
+        Выберите десерт и способ получения. После отправки заявка придёт на рабочую почту.
+      </p>
+
+      <form id="order-form" class="order-form-grid">
+        <div class="order-field">
+          <label class="order-label" for="order-name">Ваше имя</label>
+          <input class="order-input" id="order-name" name="name" type="text" autocomplete="name" placeholder="Например, Анна" required>
+        </div>
+
+        <div class="order-field">
+          <label class="order-label" for="order-phone">Телефон</label>
+          <input class="order-input" id="order-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+7 (___) ___-__-__" required>
+        </div>
+
+        <div class="order-field">
+          <label class="order-label" for="order-date">Дата получения</label>
+          <input class="order-input" id="order-date" name="date" type="date" required>
+        </div>
+
+        <div class="order-field">
+          <label class="order-label" for="order-time">Желаемое время</label>
+          <input class="order-input" id="order-time" name="time" type="time" required>
+        </div>
+
+        <div class="order-field full">
+          <span class="order-label">Выберите десерты</span>
+          <div class="order-product-list" id="order-product-list" role="group" aria-label="Выберите один или несколько десертов">
+            <p class="order-product-loading">Загрузка товаров...</p>
+          </div>
+        </div>
+
+        <div class="order-field full">
+          <span class="order-label">Способ получения</span>
+          <div class="order-delivery-switch">
+            <input id="order-pickup" type="radio" name="delivery_type" value="pickup" checked>
+            <label for="order-pickup">Самовывоз</label>
+
+            <input id="order-delivery" type="radio" name="delivery_type" value="delivery">
+            <label for="order-delivery">Доставка +150 ₽</label>
+          </div>
+        </div>
+
+        <div class="order-field order-conditional is-visible" id="order-pickup-field">
+          <label class="order-label" for="order-pickup-location">Точка самовывоза</label>
+          <select class="order-select" id="order-pickup-location" name="pickup_location">
+            <option value="Ленина, 15">Ленина, 15</option>
+            <option value="Забабахина, 42">Забабахина, 42</option>
+          </select>
+        </div>
+
+        <div class="order-field order-conditional" id="order-address-field">
+          <label class="order-label" for="order-address">Адрес доставки</label>
+          <input class="order-input" id="order-address" name="address" type="text" autocomplete="street-address" placeholder="Улица, дом, квартира">
+        </div>
+
+        <div class="order-summary">
+          <div class="order-summary-row">
+            <span id="order-products-summary-label">Десерты</span>
+            <span id="order-product-price">—</span>
+          </div>
+          <div class="order-summary-row">
+            <span>Доставка</span>
+            <span id="order-delivery-price">0 ₽</span>
+          </div>
+          <div class="order-summary-row total">
+            <span>Итого</span>
+            <strong id="order-total">—</strong>
+          </div>
+        </div>
+
+        <label class="order-consent">
+          <input id="order-consent" type="checkbox" required>
+          <span>
+            Я согласен(на) на обработку персональных данных и принимаю
+            <a href="#" onclick="event.preventDefault(); openPrivacyPolicy();">политику конфиденциальности</a>.
+          </span>
+        </label>
+
+        <button class="order-submit" id="order-submit" type="submit">Оставить заявку</button>
+        <p class="order-form-message" id="order-form-message" aria-live="polite"></p>
+      </form>
+    </div>
+  </div>
+
+
+  <script>
+    const DESIGN_WIDTH = 1920;
+    const DESIGN_HEIGHT = 5215;
+    let stageScale = 1;
+    let productOffset = 0;
+
+    function isMobileLayout() {
+      return window.innerWidth <= 760;
+    }
+
+    function updateFixedHeaderScale() {
+      const header = document.querySelector('.site-header');
+      if (!header) return;
+
+      if (isMobileLayout()) {
+        header.style.transform = 'none';
+        return;
+      }
+
+      header.style.transform = `translateX(-50%) scale(${stageScale})`;
+    }
+
+    function fitDesignStage() {
+      const shell = document.getElementById('design-shell');
+      const stage = document.getElementById('design-stage');
+
+      if (isMobileLayout()) {
+        stageScale = 1;
+        shell.style.width = '100%';
+        shell.style.height = 'auto';
+        shell.style.overflow = 'visible';
+        stage.style.width = '100%';
+        stage.style.height = 'auto';
+        stage.style.transform = 'none';
+        stage.style.overflow = 'visible';
+        document.documentElement.style.overflowY = 'auto';
+        if (!document.body.classList.contains('mobile-menu-open') &&
+            !document.body.classList.contains('modal-open')) {
+          document.body.style.overflowY = 'auto';
+        }
+        updateFixedHeaderScale();
+        return;
+      }
+
+      stageScale = Math.min(window.innerWidth / DESIGN_WIDTH, 1);
+      shell.style.width = `${DESIGN_WIDTH * stageScale}px`;
+      shell.style.height = `${DESIGN_HEIGHT * stageScale}px`;
+      stage.style.width = `${DESIGN_WIDTH}px`;
+      stage.style.height = `${DESIGN_HEIGHT}px`;
+      stage.style.transform = `scale(${stageScale})`;
+      updateFixedHeaderScale();
+    }
+
+    window.addEventListener('resize', () => {
+      fitDesignStage();
+      if (!isMobileLayout()) closeMobileMenu();
+    });
+    fitDesignStage();
+
+    document.querySelectorAll('.js-scroll').forEach(link => {
+      link.addEventListener('click', event => {
+        event.preventDefault();
+
+        const header = document.querySelector('.site-header');
+        const headerHeight = header ? header.getBoundingClientRect().height : 0;
+        const scrollGap = 14;
+
+        let targetTop = 0;
+
+        if (isMobileLayout()) {
+          const selector = link.getAttribute('href');
+          const target = selector && selector.startsWith('#')
+            ? document.querySelector(selector)
+            : null;
+
+          targetTop = target
+            ? Math.max(0, window.scrollY + target.getBoundingClientRect().top - headerHeight - 8)
+            : 0;
+
+          closeMobileMenu();
+        } else {
+          const y = Number(link.dataset.y || 0);
+          targetTop = y === 0
+            ? 0
+            : Math.max(0, y * stageScale - headerHeight - scrollGap);
+        }
+
+        window.scrollTo({
+          top: targetTop,
+          behavior: 'smooth'
+        });
+      });
+    });
+
+
+
+    function toggleMobileMenu() {
+      const menu = document.getElementById('mobile-menu');
+      const toggle = document.getElementById('mobile-menu-toggle');
+      if (!menu || !toggle) return;
+
+      const shouldOpen = !menu.classList.contains('is-open');
+      menu.classList.toggle('is-open', shouldOpen);
+      toggle.classList.toggle('is-open', shouldOpen);
+      toggle.setAttribute('aria-expanded', String(shouldOpen));
+      toggle.setAttribute('aria-label', shouldOpen ? 'Закрыть меню' : 'Открыть меню');
+      menu.setAttribute('aria-hidden', String(!shouldOpen));
+      document.body.classList.toggle('mobile-menu-open', shouldOpen);
+    }
+
+    function closeMobileMenu() {
+      const menu = document.getElementById('mobile-menu');
+      const toggle = document.getElementById('mobile-menu-toggle');
+      if (!menu || !toggle) return;
+
+      menu.classList.remove('is-open');
+      toggle.classList.remove('is-open');
+      toggle.setAttribute('aria-expanded', 'false');
+      toggle.setAttribute('aria-label', 'Открыть меню');
+      menu.setAttribute('aria-hidden', 'true');
+      document.body.classList.remove('mobile-menu-open');
+    }
+
+
+    const mobileContactsData = {
+      lenina: {
+        title: 'Ленина, 15',
+        hours: 'Будни: 08:00–21:00<br>Выходные и праздники: 09:00–21:00',
+        phoneText: '+7 (922) 733-03-30',
+        phoneHref: 'tel:+79227330330',
+        note: 'Предзаказ тортов, десертов и актуальное наличие — в сообщениях сообщества VK, TG/MAX или по телефону.'
+      },
+      zababakhina: {
+        title: 'Забабахина, 42',
+        hours: 'Будни: 08:00–21:00<br>Выходные и праздники: 09:00–21:00',
+        phoneText: '+7 (922) 720-02-20',
+        phoneHref: 'tel:+79227200220',
+        note: 'Предзаказ тортов, десертов и актуальное наличие — в сообщениях сообщества VK, TG/MAX или по телефону.'
+      }
+    };
+
+    function switchMobileContact(key, button) {
+      const data = mobileContactsData[key];
+      if (!data) return;
+
+      const title = document.getElementById('mobile-contact-title');
+      const hours = document.getElementById('mobile-contact-hours');
+      const phone = document.getElementById('mobile-contact-phone');
+      const note = document.getElementById('mobile-contact-note');
+
+      if (title) title.textContent = data.title;
+      if (hours) hours.innerHTML = data.hours;
+      if (phone) {
+        phone.textContent = data.phoneText;
+        phone.href = data.phoneHref;
+      }
+      if (note) note.textContent = data.note;
+
+      document.querySelectorAll('.contact-mobile-tab').forEach(tab => {
+        const isActive = tab === button;
+        tab.classList.toggle('active', isActive);
+        tab.setAttribute('aria-selected', String(isActive));
+      });
+    }
+
+    const ORDER_DELIVERY_PRICE = 150;
+    let orderProducts = [];
+    let orderProductsLoaded = false;
+    let pendingOrderQuery = '';
+
+    function getTomorrowISO() {
+      const date = new Date();
+      date.setDate(date.getDate() + 1);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    function normalizeOrderQuery(value) {
+      return String(value || '')
+        .toLowerCase()
+        .replace(/ё/g, 'е')
+        .replace(/[«»"']/g, '')
+        .trim();
+    }
+
+    function getFallbackOrderProducts() {
+      return [
+        { id: 'fallback-bento', name: 'Бенто-торт', price: 1100 },
+        { id: 'fallback-mousse-s', name: 'Муссовый торт S', price: 2800 },
+        { id: 'fallback-mousse-l', name: 'Муссовый торт L', price: 4000 },
+        { id: 'fallback-mousse-xl', name: 'Муссовый торт XL', price: 6800 },
+        { id: 'fallback-san-sebastian', name: 'Чизкейк San Sebastian', price: 4300 },
+        { id: 'fallback-meringue-standard', name: 'Меренговый рулет стандарт', price: 1700 },
+        { id: 'fallback-meringue-maxi', name: 'Меренговый рулет макси', price: 2500 },
+      ];
+    }
+
+    async function ensureOrderProductsLoaded() {
+      if (orderProductsLoaded) {
+        renderOrderProductOptions();
+        return;
+      }
+
+      const list = document.getElementById('order-product-list');
+      if (list) list.innerHTML = '<p class="order-product-loading">Загрузка товаров...</p>';
+
+      try {
+        const response = await fetch('/api/products/available/?format=json');
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const products = await response.json();
+
+        orderProducts = products
+          .filter(product => product && product.name && product.price !== null && product.price !== undefined)
+          .map(product => ({
+            id: String(product.id || product.slug || product.name),
+            name: product.name,
+            price: Number(product.price),
+            category: product.category?.name || '',
+          }))
+          .filter(product => Number.isFinite(product.price));
+
+        if (!orderProducts.length) {
+          orderProducts = getFallbackOrderProducts();
+        }
+      } catch (error) {
+        console.warn('Не удалось загрузить товары для формы заказа. Используем резервный список.', error);
+        orderProducts = getFallbackOrderProducts();
+      }
+
+      orderProductsLoaded = true;
+      renderOrderProductOptions();
+    }
+
+    function getCheckedOrderProductIds() {
+      return new Set(
+        Array.from(document.querySelectorAll('#order-product-list input[type="checkbox"]:checked'))
+          .map(input => input.value)
+      );
+    }
+
+    function renderOrderProductOptions() {
+      const list = document.getElementById('order-product-list');
+      if (!list) return;
+
+      const checkedIds = getCheckedOrderProductIds();
+      list.innerHTML = '';
+
+      if (!orderProducts.length) {
+        list.innerHTML = '<p class="order-product-empty">Сейчас нет десертов, доступных для заказа.</p>';
+        updateOrderTotal();
+        return;
+      }
+
+      orderProducts.forEach((product, index) => {
+        const label = document.createElement('label');
+        label.className = 'order-product-option';
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.name = 'products';
+        checkbox.value = product.id;
+        checkbox.dataset.index = String(index);
+        checkbox.checked = checkedIds.has(product.id);
+        checkbox.addEventListener('change', updateOrderTotal);
+
+        const name = document.createElement('span');
+        name.className = 'order-product-name';
+        name.textContent = product.name;
+
+        const price = document.createElement('span');
+        price.className = 'order-product-option-price';
+        price.textContent = formatPrice(product.price);
+
+        label.append(checkbox, name, price);
+        list.appendChild(label);
+      });
+
+      if (pendingOrderQuery) {
+        selectOrderProductByQuery(pendingOrderQuery);
+      }
+
+      updateOrderTotal();
+    }
+
+    function findOrderProductIndexByQuery(query) {
+      const normalized = normalizeOrderQuery(query);
+      if (!normalized) return -1;
+
+      let index = orderProducts.findIndex(product => {
+        const haystack = normalizeOrderQuery(`${product.name} ${product.category || ''}`);
+        return haystack.includes(normalized) || normalized.includes(haystack);
+      });
+
+      if (index < 0) {
+        const keywords = normalized.split(/\s+/).filter(word => word.length >= 4);
+        index = orderProducts.findIndex(product => {
+          const haystack = normalizeOrderQuery(`${product.name} ${product.category || ''}`);
+          return keywords.some(word => haystack.includes(word));
+        });
+      }
+
+      return index;
+    }
+
+    function selectOrderProductByQuery(query) {
+      if (!orderProducts.length) return;
+
+      const index = findOrderProductIndexByQuery(query);
+      if (index < 0) return;
+
+      const checkbox = document.querySelector(
+        `#order-product-list input[data-index="${index}"]`
+      );
+
+      if (checkbox) {
+        checkbox.checked = true;
+        checkbox.closest('.order-product-option')?.scrollIntoView({
+          block: 'nearest',
+          behavior: 'smooth'
+        });
+        updateOrderTotal();
+      }
+    }
+
+    function openOrderModal(productQuery = '') {
+      const modal = document.getElementById('order-modal');
+      if (!modal) return;
+
+      pendingOrderQuery = productQuery || '';
+
+      const dateInput = document.getElementById('order-date');
+      if (dateInput) {
+        const tomorrow = getTomorrowISO();
+        dateInput.min = tomorrow;
+        if (!dateInput.value || dateInput.value < tomorrow) {
+          dateInput.value = tomorrow;
+        }
+      }
+
+      const message = document.getElementById('order-form-message');
+      if (message) {
+        message.textContent = '';
+        message.className = 'order-form-message';
+      }
+
+      modal.classList.add('is-open');
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('modal-open');
+
+      ensureOrderProductsLoaded().then(() => {
+        if (pendingOrderQuery) selectOrderProductByQuery(pendingOrderQuery);
+      });
+
+      updateOrderDeliveryFields();
+      updateOrderTotal();
+
+      setTimeout(() => {
+        document.getElementById('order-name')?.focus({ preventScroll: true });
+      }, 60);
+    }
+
+    function resetOrderForm() {
+      const form = document.getElementById('order-form');
+      if (form) form.reset();
+
+      /* Сбрасываем выбранные десерты, включая позицию,
+         которая могла автоматически отмечаться после нажатия на цену. */
+      document
+        .querySelectorAll('#order-product-list input[type="checkbox"]')
+        .forEach(checkbox => {
+          checkbox.checked = false;
+        });
+
+      pendingOrderQuery = '';
+
+      const submitButton = document.getElementById('order-submit');
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = 'Оставить заявку';
+      }
+
+      const message = document.getElementById('order-form-message');
+      if (message) {
+        message.textContent = '';
+        message.className = 'order-form-message';
+      }
+
+      const productList = document.getElementById('order-product-list');
+      if (productList) productList.scrollTop = 0;
+
+      const panel = document.querySelector('.order-modal-panel');
+      if (panel) panel.scrollTop = 0;
+
+      updateOrderDeliveryFields();
+      updateOrderTotal();
+    }
+
+    function closeOrderModal() {
+      const modal = document.getElementById('order-modal');
+      if (!modal) return;
+
+      modal.classList.remove('is-open');
+      modal.setAttribute('aria-hidden', 'true');
+      document.body.classList.remove('modal-open');
+
+      resetOrderForm();
+    }
+
+    function updateOrderDeliveryFields() {
+      const isDelivery = document.getElementById('order-delivery')?.checked;
+      const pickupField = document.getElementById('order-pickup-field');
+      const addressField = document.getElementById('order-address-field');
+      const pickupSelect = document.getElementById('order-pickup-location');
+      const addressInput = document.getElementById('order-address');
+
+      pickupField?.classList.toggle('is-visible', !isDelivery);
+      addressField?.classList.toggle('is-visible', Boolean(isDelivery));
+
+      if (pickupSelect) pickupSelect.required = !isDelivery;
+      if (addressInput) addressInput.required = Boolean(isDelivery);
+
+      updateOrderTotal();
+    }
+
+    function getSelectedOrderProducts() {
+      return Array.from(
+        document.querySelectorAll('#order-product-list input[type="checkbox"]:checked')
+      )
+        .map(input => {
+          const index = Number(input.dataset.index);
+          return Number.isInteger(index) ? orderProducts[index] || null : null;
+        })
+        .filter(Boolean);
+    }
+
+    function updateOrderTotal() {
+      const products = getSelectedOrderProducts();
+      const productsTotal = products.reduce((sum, product) => sum + Number(product.price || 0), 0);
+      const isDelivery = document.getElementById('order-delivery')?.checked;
+      const deliveryPrice = isDelivery ? ORDER_DELIVERY_PRICE : 0;
+
+      const productPriceEl = document.getElementById('order-product-price');
+      const deliveryPriceEl = document.getElementById('order-delivery-price');
+      const totalEl = document.getElementById('order-total');
+      const summaryLabel = document.getElementById('order-products-summary-label');
+
+      if (summaryLabel) {
+        summaryLabel.textContent = products.length
+          ? `Десерты (${products.length})`
+          : 'Десерты';
+      }
+
+      if (productPriceEl) {
+        productPriceEl.textContent = products.length ? formatPrice(productsTotal) : '—';
+      }
+
+      if (deliveryPriceEl) {
+        deliveryPriceEl.textContent = deliveryPrice ? formatPrice(deliveryPrice) : '0 ₽';
+      }
+
+      if (totalEl) {
+        totalEl.textContent = products.length
+          ? formatPrice(productsTotal + deliveryPrice)
+          : '—';
+      }
+    }
+
+    function isValidOrderPhone(value) {
+      const digits = String(value || '').replace(/\D/g, '');
+      return digits.length >= 10 && digits.length <= 11;
+    }
+
+    async function handleOrderSubmit(event) {
+      event.preventDefault();
+
+      const form = event.currentTarget;
+      const message = document.getElementById('order-form-message');
+      const phone = document.getElementById('order-phone');
+      const products = getSelectedOrderProducts();
+      const submitButton = document.getElementById('order-submit');
+
+      message.className = 'order-form-message';
+      message.textContent = '';
+
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+
+      if (!isValidOrderPhone(phone.value)) {
+        message.classList.add('error');
+        message.textContent = 'Проверьте номер телефона — в нём должно быть 10–11 цифр.';
+        phone.focus();
+        return;
+      }
+
+      if (!products.length) {
+        message.classList.add('error');
+        message.textContent = 'Выберите хотя бы один десерт.';
+        document.getElementById('order-product-list')?.scrollIntoView({ block: 'nearest' });
+        return;
+      }
+
+      const isDelivery = document.getElementById('order-delivery')?.checked;
+
+      const payload = {
+        name: document.getElementById('order-name')?.value.trim() || '',
+        phone: phone.value.trim(),
+        date: document.getElementById('order-date')?.value || '',
+        time: document.getElementById('order-time')?.value || '',
+        product_ids: products.map(product => product.id),
+        delivery_type: isDelivery ? 'delivery' : 'pickup',
+        pickup_location: isDelivery
+          ? null
+          : (document.getElementById('order-pickup-location')?.value || null),
+        address: isDelivery
+          ? (document.getElementById('order-address')?.value.trim() || null)
+          : null,
+        consent: Boolean(document.getElementById('order-consent')?.checked)
+      };
+
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = 'Отправляем...';
+      }
+
+      try {
+        const response = await fetch('/api/orders/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        let data = {};
+        try {
+          data = await response.json();
+        } catch (_) {}
+
+        if (!response.ok) {
+          const detail = typeof data.detail === 'string'
+            ? data.detail
+            : 'Не удалось отправить заявку. Попробуйте ещё раз.';
+          throw new Error(detail);
+        }
+
+        message.classList.add('success');
+        message.textContent = data.message || 'Заявка отправлена! Мы свяжемся с вами для подтверждения.';
+
+        if (submitButton) {
+          submitButton.textContent = 'Заявка отправлена';
+        }
+      } catch (error) {
+        message.classList.add('error');
+        message.textContent = error?.message || 'Не удалось отправить заявку. Попробуйте ещё раз.';
+
+        if (submitButton) {
+          submitButton.disabled = false;
+          submitButton.textContent = 'Оставить заявку';
+        }
+      }
+    }
+
+    document.getElementById('order-modal')?.addEventListener('click', event => {
+      if (event.target.id === 'order-modal') closeOrderModal();
+    });
+
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && document.getElementById('order-modal')?.classList.contains('is-open')) {
+        closeOrderModal();
+      }
+    });
+
+    document.getElementById('order-pickup')?.addEventListener('change', updateOrderDeliveryFields);
+    document.getElementById('order-delivery')?.addEventListener('change', updateOrderDeliveryFields);
+    document.getElementById('order-form')?.addEventListener('submit', handleOrderSubmit);
+
+
+    function openPrivacyPolicy() {
+      alert('Здесь будет открываться политика конфиденциальности из базы данных.');
+    }
+
+    function formatPrice(value) {
+      const number = Number(value);
+      if (Number.isFinite(number)) return `${Math.round(number)} Руб.`;
+      return `${value} Руб.`;
+    }
+
+    function looksSavory(product) {
+      const text = `${product?.name || ''} ${product?.category?.name || ''}`.toLowerCase();
+      return ['сэндвич', 'скрэмбл', 'каша', 'сырнич', 'суп', 'боул', 'цыплен', 'лосос', 'завтрак', 'сыт'].some(word => text.includes(word));
+    }
+
+    function moveShowcaseLine(button) {
+      const line = document.getElementById('showcase-active-line');
+      if (!line || !button) return;
+      const isSecond = button.classList.contains('two');
+      line.style.left = isSecond ? '1301px' : '439px';
+      line.style.width = isSecond ? '213px' : '153px';
+    }
+
+    async function loadShowcase(address, button = null) {
+      document.querySelectorAll('.showcase-tab').forEach(tab => tab.classList.remove('active'));
+      const activeButton = button || document.querySelector('.showcase-tab.one');
+      if (activeButton) activeButton.classList.add('active');
+      moveShowcaseLine(activeButton);
+
+      const dessertBox = document.getElementById('showcase-desserts');
+      const foodBox = document.getElementById('showcase-food');
+      dessertBox.innerHTML = '';
+      foodBox.innerHTML = '';
+
+      try {
+        const response = await fetch('/api/showcase/?format=json');
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const items = await response.json();
+        const filtered = items.filter(item => (item.pickup_location?.address || '').includes(address));
+        const desserts = filtered.filter(item => !looksSavory(item.product));
+        const food = filtered.filter(item => looksSavory(item.product));
+
+        const render = (target, list) => {
+          if (!list.length) {
+            target.innerHTML = '<p class="showcase-empty">Актуальный ассортимент появится здесь.</p>';
+            return;
+          }
+          list.slice(0, 12).forEach(item => {
+            const row = document.createElement('div');
+            row.className = 'showcase-row';
+            row.innerHTML = `<span>${item.product.name}</span><span class="price">${formatPrice(item.product.price)}</span>`;
+            target.appendChild(row);
+          });
+        };
+
+        render(dessertBox, desserts);
+        render(foodBox, food);
+        syncContactPhones(filtered);
+      } catch (error) {
+        console.error('Ошибка загрузки витрины:', error);
+        dessertBox.innerHTML = '<p class="showcase-empty">Не удалось загрузить витрину.</p>';
+        foodBox.innerHTML = '<p class="showcase-empty">Не удалось загрузить витрину.</p>';
+      }
+    }
+
+    function syncContactPhones(items) {
+      items.forEach(item => {
+        const location = item.pickup_location;
+        if (!location?.phone || !location?.address) return;
+        const clean = location.phone.replace(/[^\d+]/g, '');
+        const target = location.address.includes('Ленина')
+          ? document.getElementById('contact-phone-lenina')
+          : location.address.includes('Забабахина')
+            ? document.getElementById('contact-phone-zababakhina')
+            : null;
+        if (target) {
+          target.href = `tel:${clean}`;
+          target.textContent = location.phone;
+        }
+      });
+    }
+
+    function getProductImageKey(imageUrl) {
+      if (!imageUrl || !String(imageUrl).trim()) return '';
+      try {
+        return new URL(imageUrl, window.location.origin).pathname.toLowerCase();
+      } catch (error) {
+        return String(imageUrl).split('?')[0].split('#')[0].trim().toLowerCase();
+      }
+    }
+
+    function getProductCardTitle(product) {
+      return product?.display_name || product?.name || 'Десерт';
+    }
+
+    function normalizeProductImageUrl(imageUrl) {
+      return String(imageUrl || '').trim().replaceAll('\\', '/');
+    }
+
+    async function loadProducts() {
+      const track = document.getElementById('products');
+      track.innerHTML = '';
+
+      try {
+        const response = await fetch('/api/products/?format=json');
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const products = await response.json();
+
+        /* Сохраняем исходный порядок товаров, но всю категорию «Сытная еда»
+           переносим в самый конец карусели. sort() в современных браузерах стабилен,
+           поэтому порядок внутри каждой из двух групп не меняется. */
+        const sortedProducts = [...products].sort((a, b) => {
+          const aIsSavory = a?.category?.slug === 'savory-food' || a?.category?.name === 'Сытная еда';
+          const bIsSavory = b?.category?.slug === 'savory-food' || b?.category?.name === 'Сытная еда';
+          return Number(aIsSavory) - Number(bIsSavory);
+        });
+
+        /* В карусели показываем только один товар для каждого отображаемого имени.
+           Сравниваем именно то название, которое видит пользователь: display_name,
+           а при его отсутствии — обычное name. Регистр и лишние пробелы не учитываем. */
+        const seenDisplayNames = new Set();
+
+        sortedProducts
+          .filter(product => normalizeProductImageUrl(product?.image_url))
+          .filter(product => {
+            const displayNameKey = getProductCardTitle(product)
+              .trim()
+              .replace(/\s+/g, ' ')
+              .toLocaleLowerCase('ru-RU');
+
+            if (seenDisplayNames.has(displayNameKey)) return false;
+
+            seenDisplayNames.add(displayNameKey);
+            return true;
+          })
+          .forEach(product => {
+            const imageUrl = normalizeProductImageUrl(product.image_url);
+            const title = getProductCardTitle(product);
+            const vkUrl = String(product.vk_url || '').trim();
+
+            const card = document.createElement(vkUrl ? 'a' : 'div');
+            card.className = 'product-card';
+
+            if (vkUrl) {
+              card.href = vkUrl;
+              card.target = '_blank';
+              card.rel = 'noopener noreferrer';
+              card.setAttribute('aria-label', `${title} — открыть товар во ВКонтакте`);
+            }
+
+            const priceText =
+              product.price !== null && product.price !== undefined
+                ? formatPrice(product.price)
+                : '';
+
+            card.innerHTML = `
+              <div class="product-card-image"><img src="${imageUrl}" alt="${title}"></div>
+              <h3>${title}</h3>
+              <p>${priceText}</p>
+            `;
+
+            track.appendChild(card);
+          });
+
+        productOffset = 0;
+        track.style.transform = 'translateX(0)';
+      } catch (error) {
+        console.error('Ошибка загрузки товаров:', error);
+      }
+    }
+
+    function scrollProducts(direction) {
+      const track = document.getElementById('products');
+      const windowEl = document.querySelector('.products-window');
+      if (!track || !windowEl) return;
+
+      if (isMobileLayout()) {
+        const firstCard = track.querySelector('.product-card');
+        const gap = 14;
+        const step = firstCard
+          ? firstCard.getBoundingClientRect().width + gap
+          : windowEl.clientWidth * 0.8;
+
+        windowEl.scrollBy({
+          left: direction * step,
+          behavior: 'smooth'
+        });
+        return;
+      }
+
+      const count = track.children.length;
+      const visible = 5;
+      const step = 330;
+      const maxOffset = Math.max(0, (count - visible) * step);
+      productOffset = Math.min(maxOffset, Math.max(0, productOffset + direction * step));
+      track.style.transform = `translateX(${-productOffset}px)`;
+    }
+
+    function initRevealAnimations() {
+      const blocks = document.querySelectorAll('.reveal-block');
+
+      if (isMobileLayout()) {
+        blocks.forEach(block => block.classList.add('is-visible'));
+        document.querySelector('.contacts-section')?.classList.add('contacts-footer-visible');
+        document.querySelector('.site-footer')?.classList.add('contacts-footer-visible');
+        return;
+      }
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, {
+        threshold: 0.08,
+        rootMargin: '0px 0px -4% 0px'
+      });
+
+      blocks.forEach((block, index) => {
+        if (index === 0) {
+          requestAnimationFrame(() => block.classList.add('is-visible'));
+        } else {
+          observer.observe(block);
+        }
+      });
+
+      const contacts = document.querySelector('.contacts-section');
+      const footer = document.querySelector('.site-footer');
+      if (contacts && footer) {
+        const contactsObserver = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              contacts.classList.add('contacts-footer-visible');
+              footer.classList.add('contacts-footer-visible');
+              contactsObserver.unobserve(contacts);
+            }
+          });
+        }, {
+          threshold: 0.08,
+          rootMargin: '0px 0px -4% 0px'
+        });
+        contactsObserver.observe(contacts);
+      }
+    }
+
+    loadShowcase('Ленина');
+    loadProducts();
+    initRevealAnimations();
+  </script>
+</body>
+</html>
