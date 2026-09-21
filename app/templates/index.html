@@ -3632,6 +3632,182 @@
       cursor: default;
     }
 
+  
+    /* ================= MOBILE ORDER QUANTITY — V22 =================
+       Keep quantity controls inside the selected product row.
+    */
+    @media (max-width: 760px) {
+      .order-product-list {
+        gap: 4px !important;
+        max-height: 34dvh !important;
+      }
+
+      .order-product-option {
+        display: grid !important;
+        grid-template-columns: 18px minmax(0, 1fr) auto !important;
+        grid-template-areas:
+          "check name price"
+          ". quantity quantity" !important;
+        grid-auto-rows: auto !important;
+        align-items: center !important;
+        column-gap: 8px !important;
+        row-gap: 0 !important;
+        min-height: 34px !important;
+        padding: 4px 2px !important;
+        box-sizing: border-box !important;
+      }
+
+      .order-product-option > input[type="checkbox"] {
+        grid-area: check !important;
+        align-self: center !important;
+        margin: 0 !important;
+      }
+
+      .order-product-name {
+        grid-area: name !important;
+        min-width: 0 !important;
+        align-self: center !important;
+      }
+
+      .order-product-option-price {
+        grid-area: price !important;
+        align-self: center !important;
+        justify-self: end !important;
+        padding-left: 6px !important;
+        white-space: nowrap !important;
+      }
+
+      .order-product-quantity {
+        grid-area: quantity !important;
+        position: static !important;
+        width: max-content !important;
+        max-width: 100% !important;
+        justify-self: end !important;
+        align-self: center !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        gap: 5px !important;
+      }
+
+      .order-product-option.is-selected {
+        row-gap: 6px !important;
+        padding-bottom: 8px !important;
+        margin-bottom: 2px !important;
+        border-bottom: 1px solid rgba(223, 19, 117, .12);
+      }
+
+      .order-product-option.is-selected .order-product-quantity {
+        display: inline-flex !important;
+      }
+
+      .order-product-quantity::before {
+        content: "Количество";
+        margin-right: 3px;
+        color: #7b7075;
+        font: 400 11px/1.2 Inter, sans-serif;
+        white-space: nowrap;
+      }
+
+      .order-quantity-button {
+        width: 30px !important;
+        height: 30px !important;
+        min-width: 30px !important;
+        border-radius: 9px !important;
+        font-size: 18px !important;
+        line-height: 1 !important;
+      }
+
+      .order-product-quantity-input {
+        width: 38px !important;
+        min-width: 38px !important;
+        height: 30px !important;
+        padding: 0 !important;
+        border-radius: 9px !important;
+        font-size: 14px !important;
+        line-height: 30px !important;
+        text-align: center !important;
+      }
+    }
+
+  
+    /* ================= MOBILE ORDER QUANTITY — V23 =================
+       Reserve a real second row for quantity controls so they never
+       overlap the next dessert.
+    */
+    @media (max-width: 760px) {
+      .order-product-option {
+        grid-template-columns: 18px minmax(0, 1fr) auto !important;
+        grid-template-rows: auto !important;
+        grid-template-areas: "check name price" !important;
+        min-height: 38px !important;
+        padding: 6px 2px !important;
+        row-gap: 0 !important;
+      }
+
+      .order-product-option.is-selected {
+        grid-template-rows: auto 34px !important;
+        grid-template-areas:
+          "check name price"
+          ". quantity quantity" !important;
+        min-height: 78px !important;
+        padding-bottom: 8px !important;
+        row-gap: 6px !important;
+      }
+
+      .order-product-quantity {
+        display: none !important;
+        grid-area: quantity !important;
+        grid-column: 2 / 4 !important;
+        grid-row: 2 !important;
+        position: static !important;
+        width: 100% !important;
+        max-width: none !important;
+        height: 34px !important;
+        min-height: 34px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        align-items: center !important;
+        justify-self: stretch !important;
+        justify-content: flex-end !important;
+        gap: 6px !important;
+        box-sizing: border-box !important;
+      }
+
+      .order-product-option.is-selected .order-product-quantity {
+        display: flex !important;
+      }
+
+      .order-product-quantity::before {
+        content: "Количество";
+        margin: 0 auto 0 0 !important;
+        color: #7b7075;
+        font: 400 12px/1.2 Inter, sans-serif;
+        white-space: nowrap;
+      }
+
+      .order-quantity-button {
+        flex: 0 0 32px !important;
+        width: 32px !important;
+        min-width: 32px !important;
+        height: 32px !important;
+        padding: 0 !important;
+      }
+
+      .order-product-quantity-input {
+        flex: 0 0 42px !important;
+        width: 42px !important;
+        min-width: 42px !important;
+        height: 32px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+      }
+
+      .order-product-option.is-selected + .order-product-option {
+        margin-top: 2px !important;
+      }
+    }
+
   </style>
 </head>
 <body>
