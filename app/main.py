@@ -9,6 +9,7 @@ from app.routers.products import router as products_router
 from app.routers.showcase import router as showcase_router
 from app.routers.legal import router as legal_router
 from app.routers.orders import router as orders_router
+from app.routers.contacts import router as contacts_router
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -32,6 +33,7 @@ app.include_router(products_router)
 app.include_router(showcase_router)
 app.include_router(legal_router)
 app.include_router(orders_router)
+app.include_router(contacts_router)
 
 
 @app.get("/", response_class=HTMLResponse)

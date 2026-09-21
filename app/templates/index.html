@@ -3361,6 +3361,277 @@
       }
     }
 
+  
+    /* ================= FINAL RESPONSIVE VIEWPORT FIX =================
+       Desktop canvas always follows the current browser width.
+       The order dialog uses the visible viewport instead of a small fixed card.
+    */
+
+    @media (min-width: 761px) {
+      .order-modal {
+        padding: 24px !important;
+      }
+
+      .order-modal-panel {
+        width: calc(100vw - 48px) !important;
+        height: calc(100vh - 48px) !important;
+        height: calc(100dvh - 48px) !important;
+        max-width: none !important;
+        max-height: none !important;
+        min-height: 0 !important;
+        padding: clamp(24px, 3vh, 38px) clamp(26px, 4vw, 56px) !important;
+        border-radius: 28px !important;
+        overflow-y: auto !important;
+        overscroll-behavior: contain;
+      }
+
+      .order-modal-panel > .order-modal-title,
+      .order-modal-panel > .order-modal-subtitle,
+      .order-modal-panel > .order-form {
+        width: min(100%, 1040px);
+        margin-left: auto !important;
+        margin-right: auto !important;
+      }
+
+      .order-modal-title {
+        font-size: clamp(32px, 2.25vw, 44px) !important;
+        line-height: 1.05 !important;
+        margin-bottom: 8px !important;
+      }
+
+      .order-modal-subtitle {
+        max-width: 760px !important;
+        margin-bottom: 20px !important;
+        font-size: clamp(11px, .85vw, 14px) !important;
+        line-height: 1.45 !important;
+      }
+
+      .order-modal-close {
+        right: 22px !important;
+        top: 20px !important;
+        width: 38px !important;
+        height: 38px !important;
+        font-size: 27px !important;
+        line-height: 36px !important;
+      }
+
+      .order-form-grid {
+        gap: 13px 18px !important;
+      }
+
+      .order-field {
+        gap: 6px !important;
+      }
+
+      .order-label {
+        font-size: 12px !important;
+        line-height: 1.2 !important;
+      }
+
+      .order-input,
+      .order-select {
+        height: 44px !important;
+        padding: 0 13px !important;
+        border-radius: 11px !important;
+        font-size: 13px !important;
+      }
+
+      .order-delivery-switch {
+        gap: 6px !important;
+        padding: 5px !important;
+        border-radius: 14px !important;
+      }
+
+      .order-delivery-switch label {
+        height: 36px !important;
+        border-radius: 10px !important;
+        font-size: 12px !important;
+      }
+
+      .order-product-list {
+        max-height: min(30vh, 280px) !important;
+        max-height: min(30dvh, 280px) !important;
+        gap: 7px !important;
+        padding: 10px 12px !important;
+        border-radius: 12px !important;
+      }
+
+      .order-product-option {
+        min-height: 28px !important;
+        gap: 8px !important;
+        font-size: 12px !important;
+        line-height: 1.3 !important;
+      }
+
+      .order-product-option > input[type="checkbox"] {
+        width: 15px !important;
+        height: 15px !important;
+      }
+
+      .order-summary {
+        padding: 12px 14px !important;
+        border-radius: 15px !important;
+      }
+
+      .order-summary-row {
+        font-size: 11.5px !important;
+      }
+
+      .order-summary-row.total {
+        margin-top: 8px !important;
+        padding-top: 8px !important;
+        font-size: 16px !important;
+      }
+
+      .order-summary-row.total strong {
+        font-size: 19px !important;
+      }
+
+      .order-consent {
+        gap: 7px !important;
+        font-size: 10.5px !important;
+        line-height: 1.35 !important;
+      }
+
+      .order-consent input {
+        width: 15px !important;
+        height: 15px !important;
+        flex-basis: 15px !important;
+      }
+
+      .order-submit {
+        height: 44px !important;
+        border-radius: 22px !important;
+        font-size: 15px !important;
+      }
+
+      .order-form-message {
+        font-size: 11px !important;
+      }
+
+      .order-quantity-button {
+        width: 27px !important;
+        height: 27px !important;
+        border-radius: 8px !important;
+        font-size: 16px !important;
+      }
+
+      .order-product-quantity-input {
+        width: 36px !important;
+        min-width: 36px !important;
+        height: 27px !important;
+        font-size: 12px !important;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .order-modal {
+        align-items: stretch !important;
+        padding: 0 !important;
+      }
+
+      .order-modal-panel {
+        width: 100% !important;
+        height: 100vh !important;
+        height: 100dvh !important;
+        max-height: none !important;
+        border-radius: 0 !important;
+        padding:
+          calc(20px + env(safe-area-inset-top))
+          16px
+          calc(18px + env(safe-area-inset-bottom)) !important;
+        overflow-y: auto !important;
+        overscroll-behavior: contain;
+      }
+
+      .order-modal-close {
+        top: calc(10px + env(safe-area-inset-top)) !important;
+        right: 10px !important;
+      }
+
+      .order-product-list {
+        max-height: 30vh !important;
+        max-height: 30dvh !important;
+      }
+    }
+
+  
+    /* ================= ORDER MODAL — V17 =================
+       Centered card: slightly lower than the viewport and clearly narrower.
+    */
+    @media (min-width: 761px) {
+      .order-modal {
+        padding: 32px !important;
+        align-items: center !important;
+        justify-content: center !important;
+      }
+
+      .order-modal-panel {
+        width: min(880px, calc(100vw - 64px)) !important;
+        height: 88vh !important;
+        height: 88dvh !important;
+        max-width: 880px !important;
+        max-height: 88vh !important;
+        max-height: 88dvh !important;
+        min-height: 0 !important;
+        padding: 26px 34px 28px !important;
+        border-radius: 26px !important;
+        overflow-y: auto !important;
+        box-sizing: border-box !important;
+      }
+
+      .order-modal-panel > .order-modal-title,
+      .order-modal-panel > .order-modal-subtitle,
+      .order-modal-panel > .order-form {
+        width: 100% !important;
+        max-width: none !important;
+      }
+
+      .order-product-list {
+        max-height: min(27dvh, 240px) !important;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .order-modal {
+        padding:
+          max(10px, env(safe-area-inset-top))
+          8px
+          max(10px, env(safe-area-inset-bottom)) !important;
+        align-items: center !important;
+        justify-content: center !important;
+      }
+
+      .order-modal-panel {
+        width: min(520px, calc(100vw - 16px)) !important;
+        height: 94vh !important;
+        height: 94dvh !important;
+        max-width: 520px !important;
+        max-height: 94vh !important;
+        max-height: 94dvh !important;
+        border-radius: 20px !important;
+        padding:
+          calc(18px + env(safe-area-inset-top) * .15)
+          16px
+          calc(18px + env(safe-area-inset-bottom) * .15) !important;
+        overflow-y: auto !important;
+        box-sizing: border-box !important;
+      }
+
+      .order-modal-close {
+        top: 10px !important;
+        right: 10px !important;
+      }
+    }
+
+  
+    .footer-social[data-contact-ready="false"],
+    .mobile-footer-link[data-contact-ready="false"] {
+      opacity: .45;
+      pointer-events: none;
+      cursor: default;
+    }
+
   </style>
 </head>
 <body>
@@ -3462,21 +3733,20 @@
         <img class="price-cherries" src="/static/images/cherries.png" alt="">
         <article class="price-card bento">
           <h3 class="price-card-title">Бенто-торты <small>(2-3 порции)</small></h3>
-          <button class="price-pill" onclick="openOrderModal('Бенто')" type="button">1100 Руб.</button>
           <div class="price-list">
-            <div class="price-line">Клубника-пломбир</div>
-            <div class="price-line">Красный бархат</div>
-            <div class="price-line">Вишня-шоколад</div>
-            <div class="price-line">Банан-карамель</div>
+            <div class="price-line">Клубника-пломбир<button class="price-pill" onclick="openOrderModal('Бенто-торт клубника-пломбир')" type="button">1100 Руб.</button></div>
+            <div class="price-line">Красный бархат<button class="price-pill" onclick="openOrderModal('Бенто-торт красный бархат')" type="button">1100 Руб.</button></div>
+            <div class="price-line">Вишня-шоколад<button class="price-pill" onclick="openOrderModal('Бенто-торт вишня-шоколад')" type="button">1100 Руб.</button></div>
+            <div class="price-line">Банан-карамель<button class="price-pill" onclick="openOrderModal('Бенто-торт банан-карамель')" type="button">1100 Руб.</button></div>
           </div>
         </article>
 
         <article class="price-card mousse">
           <h3 class="price-card-title">Муссовые торты</h3>
           <div class="price-list">
-            <div class="price-line">Размер S&nbsp; / &nbsp;D 18 см&nbsp; / &nbsp;H 5-6 см&nbsp; / &nbsp;0,8-1 кг&nbsp; / &nbsp;8-12 порций<button class="price-pill" onclick="openOrderModal('Муссовый торт S')" type="button">2800 Руб.</button></div>
-            <div class="price-line">Размер L&nbsp; / &nbsp;D 22 см&nbsp; / &nbsp;H 5-6 см&nbsp; / &nbsp;1,3-1,5 кг&nbsp; / &nbsp;12-16 порций<button class="price-pill" onclick="openOrderModal('Муссовый торт L')" type="button">4000 Руб.</button></div>
-            <div class="price-line">Размер XL два яруса&nbsp; / &nbsp;D 18+22 см&nbsp; / &nbsp;2,3-2,5 кг&nbsp; / &nbsp;18-28 порций<button class="price-pill" onclick="openOrderModal('Муссовый торт XL')" type="button">6800 Руб.</button></div>
+            <div class="price-line">Размер S&nbsp; / &nbsp;D 18 см&nbsp; / &nbsp;H 5-6 см&nbsp; / &nbsp;0,8-1 кг&nbsp; / &nbsp;8-12 порций<button class="price-pill" onclick="openOrderModal('Муссовый торт размер S')" type="button">2800 Руб.</button></div>
+            <div class="price-line">Размер L&nbsp; / &nbsp;D 22 см&nbsp; / &nbsp;H 5-6 см&nbsp; / &nbsp;1,3-1,5 кг&nbsp; / &nbsp;12-16 порций<button class="price-pill" onclick="openOrderModal('Муссовый торт размер L')" type="button">4000 Руб.</button></div>
+            <div class="price-line">Размер XL два яруса&nbsp; / &nbsp;D 18+22 см&nbsp; / &nbsp;2,3-2,5 кг&nbsp; / &nbsp;18-28 порций<button class="price-pill" onclick="openOrderModal('Муссовый торт XL два яруса')" type="button">6800 Руб.</button></div>
           </div>
         </article>
 
@@ -3484,7 +3754,7 @@
           <h3 class="price-card-title">Другие десерты</h3>
           <div class="price-list">
             <div class="price-line">Набор пирожных</div>
-            <div class="price-line">Чизкейк “San Sebastian”&nbsp; / &nbsp;2 кг&nbsp; / &nbsp;12 порций<button class="price-pill" onclick="openOrderModal('San Sebastian')" type="button">4300 Руб.</button></div>
+            <div class="price-line">Чизкейк “San Sebastian”&nbsp; / &nbsp;2 кг&nbsp; / &nbsp;12 порций<button class="price-pill" onclick="openOrderModal('Чизкейк San Sebastian')" type="button">4300 Руб.</button></div>
             <div class="price-line">Меренговый рулет стандарт&nbsp; / &nbsp;20*10 см&nbsp; / &nbsp;~600 г<button class="price-pill" onclick="openOrderModal('Меренговый рулет стандарт')" type="button">1700 Руб.</button></div>
             <div class="price-line">Меренговый рулет макси&nbsp; / &nbsp;30*10 см&nbsp; / &nbsp;~900 г<button class="price-pill" onclick="openOrderModal('Меренговый рулет макси')" type="button">2500 Руб.</button></div>
           </div>
@@ -3548,9 +3818,9 @@
           <div>
             <h2 class="footer-brand-title">ХАЛВА</h2>
             <p class="footer-brand-desc">Семейная кафе-кондитерская<br>в Снежинске</p>
-            <a class="footer-social" href="#">VK&nbsp; · &nbsp;vk.ru/halva_tort_snz</a>
-            <a class="footer-social" href="#">TG&nbsp; · &nbsp;vk.ru/halva_tort_snz</a>
-            <a class="footer-social" href="#">MAX&nbsp; · &nbsp;vk.ru/halva_tort_snz</a>
+            <a class="footer-social" href="#" data-contact-type="vk">VK</a>
+            <a class="footer-social" href="#" data-contact-type="telegram">TG</a>
+            <a class="footer-social" href="#" data-contact-type="max">MAX</a>
           </div>
           <div class="footer-nav">
             <p class="footer-label">НАВИГАЦИЯ</p>
@@ -3582,9 +3852,9 @@
           <div class="mobile-footer-col">
             <h2 class="mobile-footer-brand">ХАЛВА</h2>
             <p class="mobile-footer-desc">Семейная кафе-кондитерская<br>в Снежинске</p>
-            <a class="mobile-footer-link" href="#">VK · vk.ru/halva_tort_snz</a>
-            <a class="mobile-footer-link" href="#">TG · vk.ru/halva_tort_snz</a>
-            <a class="mobile-footer-link" href="#">MAX · vk.ru/halva_tort_snz</a>
+            <a class="mobile-footer-link" href="#" data-contact-type="vk">VK</a>
+            <a class="mobile-footer-link" href="#" data-contact-type="telegram">TG</a>
+            <a class="mobile-footer-link" href="#" data-contact-type="max">MAX</a>
 
             <p class="mobile-footer-label">Контакты</p>
             <p class="mobile-footer-text">Ленина, 15<br>+7 (922) 733-03-30</p>
@@ -3752,7 +4022,7 @@
         return;
       }
 
-      stageScale = Math.min(window.innerWidth / DESIGN_WIDTH, 1);
+      stageScale = window.innerWidth / DESIGN_WIDTH;
       shell.style.width = `${DESIGN_WIDTH * stageScale}px`;
       shell.style.height = `${DESIGN_HEIGHT * stageScale}px`;
       stage.style.width = `${DESIGN_WIDTH}px`;
@@ -4097,20 +4367,40 @@
       const normalized = normalizeOrderQuery(query);
       if (!normalized) return -1;
 
-      let index = orderProducts.findIndex(product => {
-        const haystack = normalizeOrderQuery(`${product.name} ${product.category || ''}`);
-        return haystack.includes(normalized) || normalized.includes(haystack);
+      const canonicalize = value => normalizeOrderQuery(value)
+        .replace(/\bразмер\b/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      const canonicalQuery = canonicalize(query);
+
+      // 1. Сначала ищем точное полное название товара.
+      let index = orderProducts.findIndex(product =>
+        normalizeOrderQuery(product.name) === normalized
+      );
+
+      if (index >= 0) return index;
+
+      // 2. Позволяем совпасть "Муссовый торт S"
+      //    с "Муссовый торт размер S", но не с другим тортом.
+      index = orderProducts.findIndex(product =>
+        canonicalize(product.name) === canonicalQuery
+      );
+
+      if (index >= 0) return index;
+
+      // 3. Последний безопасный вариант: должны совпасть ВСЕ
+      //    значимые слова, а не одно слово вроде "торт".
+      const keywords = canonicalQuery
+        .split(/\s+/)
+        .filter(Boolean);
+
+      if (!keywords.length) return -1;
+
+      return orderProducts.findIndex(product => {
+        const haystack = canonicalize(`${product.name} ${product.category || ''}`);
+        return keywords.every(word => haystack.includes(word));
       });
-
-      if (index < 0) {
-        const keywords = normalized.split(/\s+/).filter(word => word.length >= 4);
-        index = orderProducts.findIndex(product => {
-          const haystack = normalizeOrderQuery(`${product.name} ${product.category || ''}`);
-          return keywords.some(word => haystack.includes(word));
-        });
-      }
-
-      return index;
     }
 
     function selectOrderProductByQuery(query) {
@@ -4488,19 +4778,48 @@
       }
     }
 
+    function formatContactPhone(phone) {
+      const digits = String(phone || '').replace(/\D/g, '');
+
+      let normalized = digits;
+
+      if (normalized.length === 11 && normalized.startsWith('8')) {
+        normalized = `7${normalized.slice(1)}`;
+      }
+
+      if (normalized.length === 10) {
+        normalized = `7${normalized}`;
+      }
+
+      if (normalized.length === 11 && normalized.startsWith('7')) {
+        return `+7 (${normalized.slice(1, 4)}) ${normalized.slice(4, 7)}-${normalized.slice(7, 9)}-${normalized.slice(9, 11)}`;
+      }
+
+      return String(phone || '');
+    }
+
     function syncContactPhones(items) {
       items.forEach(item => {
         const location = item.pickup_location;
         if (!location?.phone || !location?.address) return;
-        const clean = location.phone.replace(/[^\d+]/g, '');
+
+        const digits = String(location.phone).replace(/\D/g, '');
+        const normalizedDigits =
+          digits.length === 11 && digits.startsWith('8')
+            ? `7${digits.slice(1)}`
+            : digits.length === 10
+              ? `7${digits}`
+              : digits;
+
         const target = location.address.includes('Ленина')
           ? document.getElementById('contact-phone-lenina')
           : location.address.includes('Забабахина')
             ? document.getElementById('contact-phone-zababakhina')
             : null;
+
         if (target) {
-          target.href = `tel:${clean}`;
-          target.textContent = location.phone;
+          target.href = normalizedDigits ? `tel:+${normalizedDigits}` : '#';
+          target.textContent = formatContactPhone(location.phone);
         }
       });
     }
@@ -4622,6 +4941,70 @@
       track.style.transform = `translateX(${-productOffset}px)`;
     }
 
+    function contactDisplayUrl(url) {
+      try {
+        const parsed = new URL(url);
+        const path = parsed.pathname.replace(/\/$/, '');
+        return `${parsed.hostname}${path}`;
+      } catch (_) {
+        return url;
+      }
+    }
+
+    async function loadFooterContacts() {
+      const links = Array.from(
+        document.querySelectorAll('[data-contact-type]')
+      );
+
+      links.forEach(link => {
+        link.dataset.contactReady = 'false';
+        link.addEventListener('click', event => {
+          if (link.dataset.contactReady !== 'true') {
+            event.preventDefault();
+          }
+        });
+      });
+
+      try {
+        const response = await fetch('/api/contacts/');
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const contacts = await response.json();
+        const byType = new Map(
+          contacts.map(contact => [
+            String(contact.type || '').toLowerCase(),
+            contact
+          ])
+        );
+
+        links.forEach(link => {
+          const type = String(link.dataset.contactType || '').toLowerCase();
+          const contact = byType.get(type);
+
+          if (!contact?.value) {
+            link.dataset.contactReady = 'false';
+            return;
+          }
+
+          link.href = contact.value;
+          link.target = '_blank';
+          link.rel = 'noopener noreferrer';
+          link.dataset.contactReady = 'true';
+
+          const label = contact.title || link.textContent.trim() || type.toUpperCase();
+          link.textContent = `${label} · ${contactDisplayUrl(contact.value)}`;
+          link.setAttribute(
+            'aria-label',
+            `${label} — открыть в новом окне`
+          );
+        });
+      } catch (error) {
+        console.error('Ошибка загрузки контактов футера:', error);
+      }
+    }
+
     function initRevealAnimations() {
       const blocks = document.querySelectorAll('.reveal-block');
 
@@ -4673,6 +5056,7 @@
 
     loadShowcase('Ленина');
     loadProducts();
+    loadFooterContacts();
     initRevealAnimations();
   </script>
 </body>
