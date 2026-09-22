@@ -1,0 +1,271 @@
+{% extends "sqladmin/layout.html" %}
+
+{% block content %}
+<style>
+  .showcase-wrap {
+    max-width: 1120px;
+  }
+
+  .showcase-location-tabs {
+    display: flex;
+    gap: .75rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+  }
+
+  .showcase-toolbar {
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) auto auto;
+    gap: .75rem;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+
+  .showcase-products {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .showcase-category {
+    overflow: hidden;
+  }
+
+  .showcase-product {
+    display: grid;
+    grid-template-columns: 22px minmax(0, 1fr) auto;
+    gap: .65rem;
+    align-items: center;
+    padding: .6rem .75rem;
+    border-top: 1px solid var(--tblr-border-color);
+  }
+
+  .showcase-product:first-child {
+    border-top: 0;
+  }
+
+  .showcase-product-name {
+    min-width: 0;
+  }
+
+  .showcase-product-name small {
+    display: block;
+    color: var(--tblr-secondary);
+    margin-top: .15rem;
+  }
+
+  .showcase-savebar {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding: .9rem 1rem;
+    background: rgba(255, 255, 255, .96);
+    border: 1px solid var(--tblr-border-color);
+    border-radius: .65rem;
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, .06);
+    backdrop-filter: blur(8px);
+  }
+
+  @media (max-width: 760px) {
+    .showcase-toolbar,
+    .showcase-products {
+      grid-template-columns: 1fr;
+    }
+
+    .showcase-savebar {
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    .showcase-savebar .btn {
+      width: 100%;
+    }
+  }
+</style>
+
+<div class="showcase-wrap">
+  <div class="page-header mb-3">
+    <div>
+      <h2 class="page-title">Ежедневная витрина</h2>
+      <div class="text-secondary mt-1">
+        Выберите точку, отметьте товары, которые есть сегодня, и нажмите «Сохранить витрину».
+      </div>
+    </div>
+  </div>
+
+  {% if not locations %}
+    <div class="alert alert-warning">
+      Нет активных точек выдачи. Сначала добавьте или активируйте точку в разделе «Точки».
+    </div>
+  {% else %}
+    <div class="showcase-location-tabs">
+      {% for location in locations %}
+        <a
+          href="?location_id={{ location.id }}"
+          class="btn {% if selected_location and selected_location.id == location.id %}btn-primary{% else %}btn-outline-primary{% endif %}"
+        >
+          {{ location.address or location.name }}
+        </a>
+      {% endfor %}
+    </div>
+
+    {% if saved %}
+      <div class="alert alert-success">
+        Витрина для «{{ selected_location.address or selected_location.name }}» сохранена.
+      </div>
+    {% endif %}
+
+    <div class="card mb-3">
+      <div class="card-body">
+        <div class="fw-bold">
+          Сейчас редактируется: {{ selected_location.address or selected_location.name }}
+        </div>
+        {% if selected_location.phone %}
+          <div class="text-secondary mt-1">{{ selected_location.phone }}</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <form method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <input type="hidden" name="location_id" value="{{ selected_location.id }}">
+
+      <div class="showcase-toolbar">
+        <input
+          id="showcase-search"
+          type="search"
+          class="form-control"
+          placeholder="Найти товар..."
+          autocomplete="off"
+        >
+        <button id="select-visible" class="btn btn-outline-secondary" type="button">
+          Отметить найденные
+        </button>
+        <button id="clear-all" class="btn btn-outline-secondary" type="button">
+          Снять все
+        </button>
+      </div>
+
+      <div class="showcase-products" id="showcase-products">
+        {% for group in product_groups %}
+          <section class="card showcase-category" data-category>
+            <div class="card-header">
+              <h3 class="card-title">{{ group.name }}</h3>
+            </div>
+
+            <div>
+              {% for product in group.products %}
+                <label
+                  class="showcase-product"
+                  data-product-row
+                  data-search="{{ (product.name ~ ' ' ~ (product.display_name or '') ~ ' ' ~ group.name)|lower }}"
+                >
+                  <input
+                    class="form-check-input m-0"
+                    type="checkbox"
+                    name="product_ids"
+                    value="{{ product.id }}"
+                    {% if product.id in selected_product_ids %}checked{% endif %}
+                  >
+
+                  <span class="showcase-product-name">
+                    <strong>{{ product.name }}</strong>
+                    {% if product.display_name and product.display_name != product.name %}
+                      <small>В карусели: {{ product.display_name }}</small>
+                    {% endif %}
+                  </span>
+
+                  <span class="text-nowrap fw-medium">
+                    {{ product.price }}
+                  </span>
+                </label>
+              {% endfor %}
+            </div>
+          </section>
+        {% endfor %}
+      </div>
+
+      <div class="showcase-savebar">
+        <div>
+          Выбрано товаров: <strong id="selected-count">0</strong>
+        </div>
+
+        <button class="btn btn-primary" type="submit">
+          Сохранить витрину
+        </button>
+      </div>
+    </form>
+  {% endif %}
+</div>
+
+<script>
+  (() => {
+    const search = document.getElementById('showcase-search');
+    const rows = Array.from(document.querySelectorAll('[data-product-row]'));
+    const categories = Array.from(document.querySelectorAll('[data-category]'));
+    const count = document.getElementById('selected-count');
+    const selectVisible = document.getElementById('select-visible');
+    const clearAll = document.getElementById('clear-all');
+
+    if (!rows.length) return;
+
+    const updateCount = () => {
+      count.textContent = rows.filter(row =>
+        row.querySelector('input[type="checkbox"]').checked
+      ).length;
+    };
+
+    const filterRows = () => {
+      const query = (search.value || '').trim().toLowerCase();
+
+      rows.forEach(row => {
+        const visible = !query || row.dataset.search.includes(query);
+        row.hidden = !visible;
+      });
+
+      categories.forEach(category => {
+        const hasVisible = Array.from(
+          category.querySelectorAll('[data-product-row]')
+        ).some(row => !row.hidden);
+
+        category.hidden = !hasVisible;
+      });
+    };
+
+    rows.forEach(row => {
+      row.querySelector('input[type="checkbox"]').addEventListener(
+        'change',
+        updateCount
+      );
+    });
+
+    search?.addEventListener('input', filterRows);
+
+    selectVisible?.addEventListener('click', () => {
+      rows
+        .filter(row => !row.hidden)
+        .forEach(row => {
+          row.querySelector('input[type="checkbox"]').checked = true;
+        });
+
+      updateCount();
+    });
+
+    clearAll?.addEventListener('click', () => {
+      rows.forEach(row => {
+        row.querySelector('input[type="checkbox"]').checked = false;
+      });
+
+      updateCount();
+    });
+
+    filterRows();
+    updateCount();
+  })();
+</script>
+{% endblock %}

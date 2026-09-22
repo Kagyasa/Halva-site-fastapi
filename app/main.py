@@ -10,6 +10,7 @@ from app.routers.showcase import router as showcase_router
 from app.routers.legal import router as legal_router
 from app.routers.orders import router as orders_router
 from app.routers.contacts import router as contacts_router
+from app.admin import setup_admin
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -18,6 +19,8 @@ app = FastAPI(
     title="Halva API",
     version="1.0.0",
 )
+
+setup_admin(app)
 
 app.mount(
     "/static",
