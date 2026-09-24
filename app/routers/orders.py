@@ -18,6 +18,7 @@ from app.models.orders import (
 )
 from app.schemas.orders import OrderEmailRequest, OrderEmailResponse
 from app.services.email import send_email
+from app.services.rate_limit import order_rate_limiter
 
 
 router = APIRouter(
@@ -104,10 +105,30 @@ async def create_order(
     order_data: OrderEmailRequest,
     request: Request,
 ) -> OrderEmailResponse:
+    client_ip = request.client.host if request.client else "unknown"
+
+    allowed, retry_after = order_rate_limiter.check(client_ip)
+
+    if not allowed:
+        logger.warning(
+            "Сработал rate limit заявок для IP %s",
+            client_ip,
+        )
+        raise HTTPException(
+            status_code=429,
+            detail=(
+                "Слишком много заявок за короткое время. "
+                "Подождите несколько минут и попробуйте снова."
+            ),
+            headers={
+                "Retry-After": str(retry_after),
+            },
+        )
+
     order_id = uuid.uuid4().hex
     request_id = uuid.uuid4().hex
 
-    client_ip = request.client.host if request.client else None
+    consent_ip_address = None if client_ip == "unknown" else client_ip
     user_agent = request.headers.get("user-agent")
 
     quantities_by_product_id = {
@@ -252,7 +273,7 @@ async def create_order(
             order_id=order_id,
             policy_sha256=privacy_policy.content_sha256,
             consent_sha256=consent_text.content_sha256,
-            ip_address=client_ip,
+            ip_address=consent_ip_address,
             user_agent=user_agent,
             request_id=request_id,
         )
@@ -261,7 +282,7 @@ async def create_order(
             privacy_policy_version_id=privacy_policy.id,
             consent_text_version_id=consent_text.id,
             consent_checked=order_data.consent,
-            ip_address=client_ip,
+            ip_address=consent_ip_address,
             user_agent=user_agent,
             request_id=request_id,
             policy_sha256=privacy_policy.content_sha256,

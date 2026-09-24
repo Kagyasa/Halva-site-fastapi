@@ -1163,6 +1163,134 @@
     .order-form-message.success { color: #6a4b59; }
     .order-form-message.error { color: #b42318; }
 
+    /* ================= ORDER SUBMIT STATUS ================= */
+    .order-result-overlay {
+      position: absolute;
+      z-index: 50;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(26, 26, 26, .20);
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
+    }
+
+    .order-result-overlay.is-open {
+      display: flex;
+    }
+
+    .order-result-card {
+      position: relative;
+      width: min(420px, calc(100vw - 40px));
+      min-height: 220px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 34px 30px 28px;
+      border-radius: 26px;
+      background:
+        radial-gradient(circle at 90% 10%, rgba(253,201,227,.58), transparent 38%),
+        radial-gradient(circle at 8% 92%, rgba(255,228,188,.60), transparent 38%),
+        #fff;
+      box-shadow: 0 24px 70px rgba(54, 16, 35, .28);
+      text-align: center;
+    }
+
+    .order-result-icon {
+      width: 54px;
+      height: 54px;
+      margin-top: 20px;
+      margin-bottom: 0;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: rgba(223, 19, 117, .10);
+      color: var(--pink);
+      font-size: 28px;
+      line-height: 1;
+      font-weight: 500;
+    }
+
+    .order-result-spinner {
+      width: 24px;
+      height: 24px;
+      border: 3px solid rgba(223, 19, 117, .18);
+      border-top-color: var(--pink);
+      border-radius: 50%;
+      animation: order-result-spin .8s linear infinite;
+    }
+
+    @keyframes order-result-spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .order-result-title {
+      margin: 0;
+      font-family: "Old Standard TT", Georgia, serif;
+      font-size: 30px;
+      line-height: 1.12;
+      font-weight: 400;
+    }
+
+    .order-result-text {
+      margin: 10px 0 0;
+      max-width: 310px;
+      color: #6f6269;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .order-result-close {
+      display: none;
+      min-width: 150px;
+      height: 42px;
+      margin-top: 22px;
+      padding: 0 22px;
+      border: 0;
+      border-radius: 21px;
+      background: var(--pink);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 500;
+    }
+
+    .order-result-overlay.is-complete .order-result-close {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .order-result-overlay.is-success .order-result-icon {
+      background: rgba(223, 19, 117, .10);
+      color: var(--pink);
+    }
+
+    .order-result-overlay.is-error .order-result-icon {
+      background: rgba(180, 35, 24, .09);
+      color: #b42318;
+    }
+
+    @media (max-width: 760px) {
+      .order-result-overlay {
+        position: fixed;
+        padding: 16px;
+      }
+
+      .order-result-card {
+        width: min(360px, calc(100vw - 32px));
+        min-height: 210px;
+        padding: 30px 24px 26px;
+        border-radius: 24px;
+      }
+
+      .order-result-title {
+        font-size: 27px;
+      }
+    }
+
     @media (max-width: 760px) {
       .order-modal {
         align-items: flex-end;
@@ -4175,6 +4303,41 @@
         <p class="order-form-message" id="order-form-message" aria-live="polite"></p>
       </form>
     </div>
+
+    <div
+      class="order-result-overlay"
+      id="order-result-overlay"
+      aria-hidden="true"
+    >
+      <div
+        class="order-result-card"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="order-result-title"
+        aria-describedby="order-result-text"
+      >
+        <h3 class="order-result-title" id="order-result-title">
+          Подождите
+        </h3>
+
+        <p class="order-result-text" id="order-result-text">
+          Заявка обрабатывается…
+        </p>
+
+        <div class="order-result-icon" id="order-result-icon" aria-hidden="true">
+          <span class="order-result-spinner"></span>
+        </div>
+
+        <button
+          class="order-result-close"
+          id="order-result-close"
+          type="button"
+          onclick="closeOrderResultModal()"
+        >
+          Закрыть
+        </button>
+      </div>
+    </div>
   </div>
 
 
@@ -4722,6 +4885,12 @@
       const modal = document.getElementById('order-modal');
       if (!modal) return;
 
+      const resultOverlay = document.getElementById('order-result-overlay');
+      if (resultOverlay) {
+        resultOverlay.className = 'order-result-overlay';
+        resultOverlay.setAttribute('aria-hidden', 'true');
+      }
+
       modal.classList.remove('is-open');
       modal.setAttribute('aria-hidden', 'true');
       document.body.classList.remove('modal-open');
@@ -4817,6 +4986,67 @@
       return digits.length >= 10 && digits.length <= 11;
     }
 
+    function openOrderResultModal() {
+      const overlay = document.getElementById('order-result-overlay');
+      const icon = document.getElementById('order-result-icon');
+      const title = document.getElementById('order-result-title');
+      const text = document.getElementById('order-result-text');
+
+      if (!overlay || !icon || !title || !text) return;
+
+      overlay.className = 'order-result-overlay is-open is-processing';
+      overlay.setAttribute('aria-hidden', 'false');
+
+      icon.innerHTML = '<span class="order-result-spinner"></span>';
+      title.textContent = 'Подождите';
+      text.textContent = 'Заявка обрабатывается…';
+    }
+
+    function showOrderResultSuccess() {
+      const overlay = document.getElementById('order-result-overlay');
+      const icon = document.getElementById('order-result-icon');
+      const title = document.getElementById('order-result-title');
+      const text = document.getElementById('order-result-text');
+      const closeButton = document.getElementById('order-result-close');
+
+      if (!overlay || !icon || !title || !text) return;
+
+      overlay.className = 'order-result-overlay is-open is-complete is-success';
+      icon.textContent = '✓';
+      title.textContent = 'Заявка отправлена';
+      text.textContent = 'Спасибо! Мы свяжемся с вами для подтверждения.';
+
+      setTimeout(() => closeButton?.focus({ preventScroll: true }), 50);
+    }
+
+    function showOrderResultError() {
+      const overlay = document.getElementById('order-result-overlay');
+      const icon = document.getElementById('order-result-icon');
+      const title = document.getElementById('order-result-title');
+      const text = document.getElementById('order-result-text');
+      const closeButton = document.getElementById('order-result-close');
+
+      if (!overlay || !icon || !title || !text) return;
+
+      overlay.className = 'order-result-overlay is-open is-complete is-error';
+      icon.textContent = '!';
+      title.textContent = 'Не получилось отправить заявку';
+      text.textContent = 'Попробуйте позже.';
+
+      setTimeout(() => closeButton?.focus({ preventScroll: true }), 50);
+    }
+
+    function closeOrderResultModal() {
+      const overlay = document.getElementById('order-result-overlay');
+
+      if (overlay) {
+        overlay.className = 'order-result-overlay';
+        overlay.setAttribute('aria-hidden', 'true');
+      }
+
+      closeOrderModal();
+    }
+
     async function handleOrderSubmit(event) {
       event.preventDefault();
 
@@ -4871,8 +5101,9 @@
 
       if (submitButton) {
         submitButton.disabled = true;
-        submitButton.textContent = 'Отправляем...';
       }
+
+      openOrderResultModal();
 
       try {
         const response = await fetch('/api/orders/', {
@@ -4889,35 +5120,54 @@
         } catch (_) {}
 
         if (!response.ok) {
-          const detail = typeof data.detail === 'string'
-            ? data.detail
-            : 'Не удалось отправить заявку. Попробуйте ещё раз.';
-          throw new Error(detail);
+          throw new Error(
+            typeof data.detail === 'string'
+              ? data.detail
+              : `HTTP ${response.status}`
+          );
         }
 
-        message.classList.add('success');
-        message.textContent = data.message || 'Заявка отправлена! Мы свяжемся с вами для подтверждения.';
-
-        if (submitButton) {
-          submitButton.textContent = 'Заявка отправлена';
-        }
+        showOrderResultSuccess();
       } catch (error) {
-        message.classList.add('error');
-        message.textContent = error?.message || 'Не удалось отправить заявку. Попробуйте ещё раз.';
-
-        if (submitButton) {
-          submitButton.disabled = false;
-          submitButton.textContent = 'Оставить заявку';
-        }
+        console.error('Ошибка отправки заявки:', error);
+        showOrderResultError();
       }
     }
 
     document.getElementById('order-modal')?.addEventListener('click', event => {
+      const resultOverlay = document.getElementById('order-result-overlay');
+
+      if (resultOverlay?.classList.contains('is-open')) {
+        return;
+      }
+
       if (event.target.id === 'order-modal') closeOrderModal();
     });
 
+    document.getElementById('order-result-overlay')?.addEventListener('click', event => {
+      const overlay = event.currentTarget;
+
+      if (
+        event.target === overlay &&
+        overlay.classList.contains('is-complete')
+      ) {
+        closeOrderResultModal();
+      }
+    });
+
     document.addEventListener('keydown', event => {
-      if (event.key === 'Escape' && document.getElementById('order-modal')?.classList.contains('is-open')) {
+      if (event.key !== 'Escape') return;
+
+      const resultOverlay = document.getElementById('order-result-overlay');
+
+      if (resultOverlay?.classList.contains('is-open')) {
+        if (resultOverlay.classList.contains('is-complete')) {
+          closeOrderResultModal();
+        }
+        return;
+      }
+
+      if (document.getElementById('order-modal')?.classList.contains('is-open')) {
         closeOrderModal();
       }
     });

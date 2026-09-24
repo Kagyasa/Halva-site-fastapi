@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hmac
+import logging
 import secrets
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
@@ -11,10 +12,11 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqladmin import Admin, BaseView, ModelView, expose
 from sqladmin.authentication import AuthenticationBackend
 from starlette.requests import Request
-from starlette.responses import RedirectResponse
+from starlette.responses import HTMLResponse, RedirectResponse
 from wtforms import SelectField
 
 from app.database import SessionLocal, engine
+from app.services.rate_limit import admin_login_rate_limiter
 from app.models.catalog import (
     Category,
     PickupLocation,
@@ -31,6 +33,8 @@ from app.models.orders import (
 )
 
 SNEZHINSK_TZ = timezone(timedelta(hours=5))
+
+logger = logging.getLogger(__name__)
 
 ORDER_STATUS_CHOICES = [
     ("new", "Новая"),
@@ -54,6 +58,136 @@ class AdminSettings(BaseSettings):
     )
 
 
+def admin_blocked_response(retry_after: int) -> HTMLResponse:
+    minutes = max(1, (retry_after + 59) // 60)
+
+    html = f"""<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HALVA — вход временно заблокирован</title>
+  <style>
+    * {{ box-sizing: border-box; }}
+    body {{
+      min-height: 100vh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background:
+        radial-gradient(circle at 85% 15%, rgba(253, 201, 227, .72), transparent 36%),
+        radial-gradient(circle at 10% 90%, rgba(255, 228, 188, .75), transparent 38%),
+        #fff;
+      color: #1a1a1a;
+      font-family: Inter, Arial, sans-serif;
+    }}
+    .card {{
+      width: min(460px, 100%);
+      padding: 38px 34px;
+      border: 1px solid rgba(26, 26, 26, .08);
+      border-radius: 26px;
+      background: rgba(255, 255, 255, .94);
+      box-shadow: 0 24px 70px rgba(54, 16, 35, .14);
+      text-align: center;
+    }}
+    .icon {{
+      width: 58px;
+      height: 58px;
+      margin: 0 auto 18px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: rgba(223, 19, 117, .10);
+      color: #DF1375;
+      font-size: 28px;
+      font-weight: 700;
+    }}
+    h1 {{
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 30px;
+      font-weight: 400;
+      line-height: 1.15;
+    }}
+    p {{
+      margin: 14px 0 0;
+      color: #6f6269;
+      font-size: 15px;
+      line-height: 1.5;
+    }}
+    .timer {{
+      margin-top: 22px;
+      color: #DF1375;
+      font-size: 15px;
+      font-weight: 600;
+    }}
+    a {{
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 180px;
+      height: 44px;
+      margin-top: 24px;
+      padding: 0 22px;
+      border-radius: 22px;
+      background: #DF1375;
+      color: #fff;
+      text-decoration: none;
+      font-size: 15px;
+      font-weight: 600;
+    }}
+  </style>
+</head>
+<body>
+  <main class="card">
+    <div class="icon">!</div>
+    <h1>Слишком много попыток входа</h1>
+    <p>
+      Вход в админку с этого IP временно заблокирован.
+      Это защита от подбора пароля.
+    </p>
+    <div class="timer" id="timer">
+      Повторите примерно через {minutes} мин.
+    </div>
+    <a href="/admin/login">Вернуться ко входу</a>
+  </main>
+
+  <script>
+    let seconds = {retry_after};
+    const timer = document.getElementById("timer");
+
+    const updateTimer = () => {{
+      if (seconds <= 0) {{
+        timer.textContent = "Блокировка закончилась. Можно попробовать снова.";
+        return;
+      }}
+
+      const mins = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+
+      timer.textContent =
+        `До следующей попытки: ${{mins}}:${{String(secs).padStart(2, "0")}}`;
+
+      seconds -= 1;
+    }};
+
+    updateTimer();
+    setInterval(updateTimer, 1000);
+  </script>
+</body>
+</html>"""
+
+    return HTMLResponse(
+        content=html,
+        status_code=429,
+        headers={
+            "Retry-After": str(retry_after),
+            "Cache-Control": "no-store",
+        },
+    )
+
+
 class HalvaAdminAuth(AuthenticationBackend):
     def __init__(self, settings: AdminSettings):
         self.settings = settings
@@ -70,11 +204,51 @@ class HalvaAdminAuth(AuthenticationBackend):
         username = str(form.get("username", ""))
         password = str(form.get("password", ""))
 
-        if not (
-            hmac.compare_digest(username, self.settings.admin_username)
-            and hmac.compare_digest(password, self.settings.admin_password)
-        ):
+        client_ip = request.client.host if request.client else "unknown"
+
+        is_blocked, retry_after = admin_login_rate_limiter.is_blocked(
+            client_ip
+        )
+
+        if is_blocked:
+            logger.warning(
+                "Заблокирована попытка входа в админку с IP %s. "
+                "Повтор через %s сек.",
+                client_ip,
+                retry_after,
+            )
+            return admin_blocked_response(retry_after)
+
+        username_ok = hmac.compare_digest(
+            username,
+            self.settings.admin_username,
+        )
+        password_ok = hmac.compare_digest(
+            password,
+            self.settings.admin_password,
+        )
+
+        if not (username_ok and password_ok):
+            newly_blocked, retry_after = (
+                admin_login_rate_limiter.record_failure(client_ip)
+            )
+
+            if newly_blocked:
+                logger.warning(
+                    "IP %s временно заблокирован после серии "
+                    "неудачных входов в админку. Блокировка: %s сек.",
+                    client_ip,
+                    retry_after,
+                )
+                return admin_blocked_response(retry_after)
+
+            logger.warning(
+                "Неудачная попытка входа в админку с IP %s",
+                client_ip,
+            )
             return False
+
+        admin_login_rate_limiter.reset(client_ip)
 
         request.session.clear()
         request.session.update(
