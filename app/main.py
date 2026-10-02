@@ -1,5 +1,7 @@
 from pathlib import Path
 
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -15,9 +17,29 @@ from app.admin import setup_admin
 
 BASE_DIR = Path(__file__).resolve().parent
 
+class AppSettings(BaseSettings):
+    app_env: str = "development"
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
+
+
+settings = AppSettings()
+
+IS_PRODUCTION = (
+    settings.app_env.strip().lower() == "production"
+)
+
 app = FastAPI(
     title="Halva API",
     version="1.0.0",
+
+    docs_url=None if IS_PRODUCTION else "/docs",
+    redoc_url=None if IS_PRODUCTION else "/redoc",
+    openapi_url=None if IS_PRODUCTION else "/openapi.json",
 )
 
 

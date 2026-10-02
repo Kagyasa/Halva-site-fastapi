@@ -121,6 +121,8 @@ class RussianDateFilter(OperationColumnFilter):
 
 
 class AdminSettings(BaseSettings):
+    app_env: str = "development"
+
     admin_secret_key: str
     admin_session_https_only: bool = False
 
@@ -713,8 +715,6 @@ class CategoryAdmin(ModelView, model=Category):
 
     icon = "fa-solid fa-tags"
 
-    category = "Каталог"
-
 
 
     column_list = ["name", "slug", "is_active", "updated_at"]
@@ -750,8 +750,6 @@ class ProductAdmin(ModelView, model=Product):
     name_plural = "Товары"
 
     icon = "fa-solid fa-cake-candles"
-
-    category = "Каталог"
 
 
 
@@ -887,8 +885,6 @@ class PickupLocationAdmin(ModelView, model=PickupLocation):
 
     icon = "fa-solid fa-location-dot"
 
-    category = "Витрины"
-
 
 
     column_list = ["name", "address", "phone", "is_active"]
@@ -920,8 +916,6 @@ class ShowcaseItemAdmin(ModelView, model=ShowcaseItem):
     name_plural = "Техническая витрина"
 
     icon = "fa-solid fa-store"
-
-    category = "Витрины"
 
 
 
@@ -978,8 +972,6 @@ class ShowcaseManagerAdmin(BaseView):
     name = "Управление витриной"
 
     icon = "fa-solid fa-store"
-
-    category = "Витрины"
 
 
 
@@ -1080,11 +1072,12 @@ class ShowcaseManagerAdmin(BaseView):
                 submitted_csrf = str(form.get("csrf_token", ""))
 
                 if not hmac.compare_digest(submitted_csrf, csrf_token):
-
-                    raise ValueError(
-
-                        "Сессия формы устарела. Обновите страницу и попробуйте ещё раз."
-
+                    return HTMLResponse(
+                        content=(
+                            "Сессия формы устарела. "
+                            "Обновите страницу и попробуйте ещё раз."
+                        ),
+                        status_code=403,
                     )
 
 
@@ -1112,8 +1105,10 @@ class ShowcaseManagerAdmin(BaseView):
 
 
                 if requested_location_id not in valid_location_ids:
-
-                    raise ValueError("Не удалось определить точку витрины.")
+                    return HTMLResponse(
+                        content="Не удалось определить точку витрины.",
+                        status_code=400,
+                    )
 
 
 
@@ -1341,8 +1336,6 @@ class SiteContactAdmin(ModelView, model=SiteContact):
 
     icon = "fa-solid fa-address-book"
 
-    category = "Сайт"
-
 
 
     column_list = ["type", "title", "value", "is_active", "updated_at"]
@@ -1388,8 +1381,6 @@ class OrderAdmin(ModelView, model=Order):
     name_plural = "Заявки"
 
     icon = "fa-solid fa-receipt"
-
-    category = "Заказы"
 
 
 
@@ -1625,8 +1616,6 @@ class OrderItemAdmin(ModelView, model=OrderItem):
 
     icon = "fa-solid fa-list"
 
-    category = "Заказы"
-
 
 
     def is_visible(self, request: Request) -> bool:
@@ -1679,8 +1668,6 @@ class PrivacyPolicyAdmin(ModelView, model=PrivacyPolicyVersion):
 
     icon = "fa-solid fa-shield-halved"
 
-    category = "Документы"
-
 
 
     column_list = ["version", "title", "is_active", "published_at", "created_at"]
@@ -1705,8 +1692,6 @@ class ConsentTextAdmin(ModelView, model=ConsentTextVersion):
 
     icon = "fa-solid fa-file-signature"
 
-    category = "Документы"
-
 
 
     column_list = ["version", "is_active", "published_at", "created_at"]
@@ -1730,8 +1715,6 @@ class ConsentEventAdmin(ModelView, model=ConsentEvent):
     name_plural = "Согласия"
 
     icon = "fa-solid fa-check-double"
-
-    category = "Система"
 
 
 
@@ -1813,6 +1796,15 @@ async def admin_home_redirect():
 def setup_admin(app: FastAPI) -> Admin:
 
     settings = AdminSettings()
+
+    if (
+        settings.app_env.strip().lower() == "production"
+        and not settings.admin_session_https_only
+    ):
+        raise RuntimeError(
+            "В production необходимо установить "
+            "ADMIN_SESSION_HTTPS_ONLY=true"
+        )
 
     authentication_backend = HalvaAdminAuth(settings)
 

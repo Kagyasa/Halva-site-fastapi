@@ -85,11 +85,14 @@ class OrderEmailRequest(BaseModel):
     @field_validator("date")
     @classmethod
     def validate_order_date(cls, value: date) -> date:
-        today = datetime.now(SNEZHINSK_TZ).date()
+        tomorrow = (
+            datetime.now(SNEZHINSK_TZ).date()
+            + timedelta(days=1)
+        )
 
-        if value < today:
+        if value < tomorrow:
             raise ValueError(
-                "Дата получения не может быть в прошлом"
+                "Дата получения должна быть не раньше завтрашнего дня"
             )
 
         return value

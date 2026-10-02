@@ -4761,18 +4761,6 @@
         .trim();
     }
 
-    function getFallbackOrderProducts() {
-      return [
-        { id: 'fallback-bento', name: 'Бенто-торт', price: 1100 },
-        { id: 'fallback-mousse-s', name: 'Муссовый торт S', price: 2800 },
-        { id: 'fallback-mousse-l', name: 'Муссовый торт L', price: 4000 },
-        { id: 'fallback-mousse-xl', name: 'Муссовый торт XL', price: 6800 },
-        { id: 'fallback-san-sebastian', name: 'Чизкейк San Sebastian', price: 4300 },
-        { id: 'fallback-meringue-standard', name: 'Меренговый рулет стандарт', price: 1700 },
-        { id: 'fallback-meringue-maxi', name: 'Меренговый рулет макси', price: 2500 },
-      ];
-    }
-
     async function ensureOrderProductsLoaded() {
       if (orderProductsLoaded) {
         renderOrderProductOptions();
@@ -4780,34 +4768,64 @@
       }
 
       const list = document.getElementById('order-product-list');
-      if (list) list.innerHTML = '<p class="order-product-loading">Загрузка товаров...</p>';
+
+      if (list) {
+        list.innerHTML =
+          '<p class="order-product-loading">Загрузка товаров...</p>';
+      }
 
       try {
-        const response = await fetch('/api/products/available/?format=json');
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const response = await fetch(
+          '/api/products/available/?format=json'
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
 
         const products = await response.json();
 
         orderProducts = products
-          .filter(product => product && product.name && product.price !== null && product.price !== undefined)
+          .filter(product =>
+            product &&
+            product.id &&
+            product.name &&
+            product.price !== null &&
+            product.price !== undefined
+          )
           .map(product => ({
-            id: String(product.id || product.slug || product.name),
+            id: String(product.id),
             name: product.name,
             price: Number(product.price),
             category: product.category?.name || '',
           }))
-          .filter(product => Number.isFinite(product.price));
+          .filter(product =>
+            Number.isFinite(product.price)
+          );
 
-        if (!orderProducts.length) {
-          orderProducts = getFallbackOrderProducts();
-        }
+        orderProductsLoaded = true;
+
+        renderOrderProductOptions();
+
       } catch (error) {
-        console.warn('Не удалось загрузить товары для формы заказа. Используем резервный список.', error);
-        orderProducts = getFallbackOrderProducts();
-      }
+        console.error(
+          'Не удалось загрузить товары для формы заказа.',
+          error
+        );
 
-      orderProductsLoaded = true;
-      renderOrderProductOptions();
+        orderProducts = [];
+        orderProductsLoaded = false;
+
+        if (list) {
+          list.innerHTML =
+            '<p class="order-product-empty">' +
+            'Не удалось загрузить товары. ' +
+            'Попробуйте закрыть форму и открыть её снова.' +
+            '</p>';
+        }
+
+        updateOrderTotal();
+      }
     }
 
     function getCheckedOrderProductIds() {
@@ -5277,6 +5295,21 @@
 
       message.className = 'order-form-message';
       message.textContent = '';
+
+      if (!orderProductsLoaded) {
+        message.classList.add('error');
+        message.textContent =
+          'Не удалось загрузить товары. ' +
+          'Закройте форму и попробуйте открыть её снова.';
+
+        document
+          .getElementById('order-product-list')
+          ?.scrollIntoView({
+            block: 'nearest'
+          });
+
+        return;
+      }
 
       if (!form.checkValidity()) {
         form.reportValidity();
