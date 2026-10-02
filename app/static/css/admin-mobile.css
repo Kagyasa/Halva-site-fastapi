@@ -1,0 +1,113 @@
+/* Mobile improvements for SQLAdmin. */
+@media (max-width: 767.98px) {
+  body {
+    overflow-x: hidden;
+  }
+
+  .page-wrapper,
+  .page-body,
+  .page-body .container-fluid,
+  .page-body .row,
+  .page-body .col-12 {
+    min-width: 0;
+  }
+
+  .page-body .container-fluid {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  /* SQLAdmin renders the list card and filter sidebar in one nowrap flex row.
+     On phones we stack them instead. */
+  .page-body .d-flex.min-w-0 {
+    flex-direction: column !important;
+    gap: 12px;
+    min-width: 0 !important;
+  }
+
+  .page-body .d-flex.min-w-0 > .flex-grow-1 {
+    order: 2;
+    width: 100% !important;
+    min-width: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  .filter-sidebar-col {
+    order: 1;
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 0 0 auto !important;
+  }
+
+  #filter-sidebar {
+    width: 100%;
+    margin: 0;
+  }
+
+  /* On mobile the filters become a compact collapsible card. */
+  #filter-sidebar .card-header {
+    cursor: pointer;
+    user-select: none;
+  }
+
+  #filter-sidebar .card-header::after {
+    content: "Показать";
+    margin-left: auto;
+    font-size: 0.875rem;
+    font-weight: 400;
+    color: var(--tblr-primary);
+  }
+
+  #filter-sidebar.is-open .card-header::after {
+    content: "Скрыть";
+  }
+
+  #filter-sidebar .card-body {
+    display: none;
+  }
+
+  #filter-sidebar.is-open .card-body {
+    display: block;
+  }
+
+  /* Search/actions should not fight for horizontal space. */
+  .card-body.border-bottom.py-3 > .d-flex.justify-content-between {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px;
+  }
+
+  .card-body.border-bottom.py-3 > .d-flex.justify-content-between > .dropdown.col-4,
+  .card-body.border-bottom.py-3 > .d-flex.justify-content-between > .col-md-4 {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .card-body.border-bottom.py-3 .input-group {
+    flex-wrap: nowrap;
+    width: 100%;
+  }
+
+  /* Keep the data table usable by horizontal scrolling instead of squeezing it. */
+  .table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .table-responsive table {
+    min-width: 760px;
+  }
+
+  /* Pagination/footer also stacks on narrow screens. */
+  .card-footer.d-flex {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+
+  .card-footer .pagination {
+    margin-left: 0 !important;
+    flex-wrap: wrap;
+  }
+}
