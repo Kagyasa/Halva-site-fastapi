@@ -1121,24 +1121,184 @@
       white-space: nowrap;
     }
 
-    .order-consent {
+    .order-honeypot {
+      position: absolute !important;
+      left: -10000px !important;
+      top: auto !important;
+      width: 1px !important;
+      height: 1px !important;
+      overflow: hidden !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+
+    .order-legal-box {
       grid-column: 1 / -1;
       display: flex;
       align-items: flex-start;
-      gap: 8px;
-      margin-top: 2px;
-      font-size: 12px;
-      line-height: 1.45;
-      color: #6a5d64;
+      gap: 18px;
+      margin-top: 4px;
     }
-    .order-consent input {
+
+    .order-consent-checkbox-hitbox {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      margin: -2px -3px 0 -3px;
+      flex: 0 0 22px;
+      cursor: pointer;
+    }
+
+    .order-consent-checkbox-hitbox input {
       width: 16px;
       height: 16px;
-      margin: 1px 0 0;
+      margin: 0;
       accent-color: var(--pink);
-      flex: 0 0 16px;
+      cursor: pointer;
     }
-    .order-consent a { color: var(--pink); }
+
+    .order-legal-content {
+      min-width: 0;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .order-legal-main-text {
+      display: block;
+      margin: 0;
+      color: #6a5d64;
+      font-size: 12px;
+      line-height: 1.45;
+      font-weight: 400;
+    }
+
+    .order-legal-links {
+      display: block;
+      width: 100%;
+      margin-top: 3px;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .order-legal-links a {
+      color: var(--pink);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    .order-legal-links a:hover {
+      color: var(--pink);
+    }
+
+    @media (max-width: 760px) {
+      .order-legal-box {
+        gap: 8px;
+      }
+    }
+
+    /* ================= LEGAL DOCUMENT MODAL ================= */
+    .legal-modal {
+      position: fixed;
+      z-index: 21000;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 28px;
+      background: rgba(26, 26, 26, .44);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .legal-modal.is-open {
+      display: flex;
+    }
+
+    .legal-modal-panel {
+      position: relative;
+      width: min(760px, calc(100vw - 44px));
+      max-height: calc(100vh - 48px);
+      overflow: auto;
+      padding: 34px 38px 36px;
+      border-radius: 28px;
+      background:
+        radial-gradient(circle at 92% 8%, rgba(253,201,227,.58) 0, rgba(253,201,227,0) 34%),
+        radial-gradient(circle at 5% 95%, rgba(255,228,188,.62) 0, rgba(255,228,188,0) 34%),
+        #fff;
+      box-shadow: 0 28px 90px rgba(54, 16, 35, .28);
+    }
+
+    .legal-modal-close {
+      position: absolute;
+      right: 18px;
+      top: 16px;
+      width: 38px;
+      height: 38px;
+      border: 0;
+      border-radius: 50%;
+      background: rgba(255,255,255,.82);
+      color: #6f5a64;
+      font-size: 27px;
+      line-height: 35px;
+      font-weight: 300;
+      padding: 0;
+    }
+
+    .legal-modal-title {
+      margin: 0 44px 8px 0;
+      font-family: "Old Standard TT", Georgia, serif;
+      font-size: 34px;
+      line-height: 1.12;
+      font-weight: 400;
+    }
+
+    .legal-modal-meta {
+      min-height: 18px;
+      margin: 0 0 20px;
+      color: #8a7b82;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .legal-modal-text {
+      margin: 0;
+      color: #342b30;
+      font-size: 14px;
+      line-height: 1.65;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .legal-modal-text.is-error {
+      color: #b42318;
+    }
+
+    @media (max-width: 760px) {
+      .legal-modal {
+        padding: 14px;
+      }
+
+      .legal-modal-panel {
+        width: min(100%, 560px);
+        max-height: calc(100vh - 28px);
+        padding: 28px 22px 26px;
+        border-radius: 24px;
+      }
+
+      .legal-modal-title {
+        font-size: 28px;
+      }
+
+      .legal-modal-text {
+        font-size: 13px;
+        line-height: 1.6;
+      }
+
+    }
 
     .order-submit {
       grid-column: 1 / -1;
@@ -1316,7 +1476,7 @@
       }
       .order-field.full,
       .order-summary,
-      .order-consent,
+      .order-legal-box,
       .order-submit,
       .order-form-message {
         grid-column: 1;
@@ -4291,13 +4451,44 @@
           </div>
         </div>
 
-        <label class="order-consent">
-          <input id="order-consent" type="checkbox" required>
-          <span>
-            Я согласен(на) на обработку персональных данных и принимаю
-            <a href="#" onclick="event.preventDefault(); openPrivacyPolicy();">политику конфиденциальности</a>.
+        <div class="order-honeypot" aria-hidden="true">
+          <label for="order-website">Ваш сайт</label>
+          <input
+            id="order-website"
+            name="website"
+            type="text"
+            tabindex="-1"
+            autocomplete="off"
+          >
+        </div>
+
+        <div class="order-legal-box">
+          <label
+            class="order-consent-checkbox-hitbox"
+            for="order-consent"
+            aria-label="Дать согласие на обработку персональных данных"
+          >
+            <input id="order-consent" type="checkbox" required>
+          </label>
+
+          <span class="order-legal-content">
+            <span class="order-legal-main-text">
+              Даю согласие на обработку моих персональных данных
+              для оформления и обработки заявки.
+            </span>
+
+            <span class="order-legal-links">
+              <a
+                href="#"
+                onclick="event.preventDefault(); openConsentText();"
+              >Текст согласия</a>.
+              <a
+                href="#"
+                onclick="event.preventDefault(); openPrivacyPolicy();"
+              >Политика обработки персональных данных</a>.
+            </span>
           </span>
-        </label>
+        </div>
 
         <button class="order-submit" id="order-submit" type="submit">Оставить заявку</button>
         <p class="order-form-message" id="order-form-message" aria-live="polite"></p>
@@ -4337,6 +4528,34 @@
           Закрыть
         </button>
       </div>
+    </div>
+  </div>
+
+  <div class="legal-modal" id="legal-modal" aria-hidden="true">
+    <div
+      class="legal-modal-panel"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="legal-modal-title"
+    >
+      <button
+        class="legal-modal-close"
+        type="button"
+        aria-label="Закрыть документ"
+        onclick="closeLegalModal()"
+      >×</button>
+
+      <h2 class="legal-modal-title" id="legal-modal-title">
+        Документ
+      </h2>
+
+      <p class="legal-modal-meta" id="legal-modal-meta"></p>
+
+      <div
+        class="legal-modal-text"
+        id="legal-modal-text"
+        aria-live="polite"
+      ></div>
     </div>
   </div>
 
@@ -5096,6 +5315,7 @@
         address: isDelivery
           ? (document.getElementById('order-address')?.value.trim() || null)
           : null,
+        website: document.getElementById('order-website')?.value || '',
         consent: Boolean(document.getElementById('order-consent')?.checked)
       };
 
@@ -5158,6 +5378,12 @@
     document.addEventListener('keydown', event => {
       if (event.key !== 'Escape') return;
 
+      const legalModal = document.getElementById('legal-modal');
+      if (legalModal?.classList.contains('is-open')) {
+        closeLegalModal();
+        return;
+      }
+
       const resultOverlay = document.getElementById('order-result-overlay');
 
       if (resultOverlay?.classList.contains('is-open')) {
@@ -5176,10 +5402,140 @@
     document.getElementById('order-delivery')?.addEventListener('change', updateOrderDeliveryFields);
     document.getElementById('order-form')?.addEventListener('submit', handleOrderSubmit);
 
+    const orderConsentCheckbox = document.getElementById('order-consent');
+
+    orderConsentCheckbox?.addEventListener('invalid', () => {
+      if (!orderConsentCheckbox.checked) {
+        orderConsentCheckbox.setCustomValidity(
+          'Чтобы продолжить, дайте согласие на обработку персональных данных'
+        );
+      }
+    });
+
+    orderConsentCheckbox?.addEventListener('change', () => {
+      orderConsentCheckbox.setCustomValidity('');
+    });
+
+
+    let legalModalPreviousFocus = null;
+
+    function formatLegalPublishedAt(value) {
+      if (!value) return '';
+
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return '';
+
+      return new Intl.DateTimeFormat('ru-RU', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      }).format(date);
+    }
+
+    async function openLegalDocument({
+      url,
+      fallbackTitle,
+      documentLabel
+    }) {
+      const modal = document.getElementById('legal-modal');
+      const title = document.getElementById('legal-modal-title');
+      const meta = document.getElementById('legal-modal-meta');
+      const text = document.getElementById('legal-modal-text');
+
+      if (!modal || !title || !meta || !text) return;
+
+      legalModalPreviousFocus = document.activeElement;
+
+      title.textContent = fallbackTitle;
+      meta.textContent = '';
+      text.className = 'legal-modal-text';
+      text.textContent = 'Загрузка документа…';
+
+      modal.classList.add('is-open');
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('modal-open');
+
+      try {
+        const response = await fetch(url, {
+          headers: {
+            'Accept': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        title.textContent = String(data.title || fallbackTitle);
+        text.textContent = String(data.text || 'Текст документа пока не опубликован.');
+
+        const metaParts = [];
+
+        if (data.version) {
+          metaParts.push(`Версия ${String(data.version)}`);
+        }
+
+        const publishedAt = formatLegalPublishedAt(data.published_at);
+        if (publishedAt) {
+          metaParts.push(`опубликовано ${publishedAt}`);
+        }
+
+        meta.textContent = metaParts.join(' · ');
+      } catch (error) {
+        console.error(`Не удалось загрузить ${documentLabel}:`, error);
+        meta.textContent = '';
+        text.className = 'legal-modal-text is-error';
+        text.textContent = 'Не удалось загрузить документ. Попробуйте ещё раз позже.';
+      }
+    }
 
     function openPrivacyPolicy() {
-      alert('Здесь будет открываться политика конфиденциальности из базы данных.');
+      return openLegalDocument({
+        url: '/api/legal/privacy-policy/',
+        fallbackTitle: 'Политика обработки персональных данных',
+        documentLabel: 'политику обработки персональных данных'
+      });
     }
+
+    function openConsentText() {
+      return openLegalDocument({
+        url: '/api/legal/consent/',
+        fallbackTitle: 'Согласие на обработку персональных данных',
+        documentLabel: 'текст согласия'
+      });
+    }
+
+    function closeLegalModal() {
+      const modal = document.getElementById('legal-modal');
+      if (!modal) return;
+
+      modal.classList.remove('is-open');
+      modal.setAttribute('aria-hidden', 'true');
+
+      const orderModalOpen =
+        document.getElementById('order-modal')?.classList.contains('is-open');
+
+      if (!orderModalOpen) {
+        document.body.classList.remove('modal-open');
+      }
+
+      if (
+        legalModalPreviousFocus &&
+        typeof legalModalPreviousFocus.focus === 'function'
+      ) {
+        legalModalPreviousFocus.focus({ preventScroll: true });
+      }
+
+      legalModalPreviousFocus = null;
+    }
+
+    document.getElementById('legal-modal')?.addEventListener('click', event => {
+      if (event.target.id === 'legal-modal') {
+        closeLegalModal();
+      }
+    });
 
     function formatPrice(value) {
       const number = Number(value);
@@ -5278,7 +5634,15 @@
           list.forEach(item => {
             const row = document.createElement('div');
             row.className = 'showcase-row';
-            row.innerHTML = `<span>${item.product.name}</span><span class="price">${formatPrice(item.product.price)}</span>`;
+
+            const name = document.createElement('span');
+            name.textContent = String(item?.product?.name || '');
+
+            const price = document.createElement('span');
+            price.className = 'price';
+            price.textContent = formatPrice(item?.product?.price);
+
+            row.append(name, price);
             target.appendChild(row);
           });
         };
@@ -5360,8 +5724,49 @@
       return product?.display_name || product?.name || 'Десерт';
     }
 
+    function getSafeHttpUrl(value, { allowSameOrigin = true } = {}) {
+      const raw = String(value || '').trim().replaceAll('\\', '/');
+      if (!raw) return '';
+
+      try {
+        const parsed = new URL(raw, window.location.origin);
+
+        if (!['http:', 'https:'].includes(parsed.protocol)) {
+          return '';
+        }
+
+        if (!allowSameOrigin && parsed.origin === window.location.origin) {
+          return '';
+        }
+
+        return parsed.href;
+      } catch (_) {
+        return '';
+      }
+    }
+
+    function getSafeVkUrl(value) {
+      const safeUrl = getSafeHttpUrl(value, { allowSameOrigin: false });
+      if (!safeUrl) return '';
+
+      try {
+        const parsed = new URL(safeUrl);
+        const host = parsed.hostname.toLowerCase();
+
+        const isVkHost =
+          host === 'vk.ru' ||
+          host.endsWith('.vk.ru') ||
+          host === 'vk.com' ||
+          host.endsWith('.vk.com');
+
+        return isVkHost ? safeUrl : '';
+      } catch (_) {
+        return '';
+      }
+    }
+
     function normalizeProductImageUrl(imageUrl) {
-      return String(imageUrl || '').trim().replaceAll('\\', '/');
+      return getSafeHttpUrl(imageUrl);
     }
 
     async function loadProducts() {
@@ -5389,7 +5794,7 @@
         const seenDisplayNames = new Set();
 
         sortedProducts
-          .filter(product => normalizeProductImageUrl(product?.image_url))
+          .filter(product => Boolean(normalizeProductImageUrl(product?.image_url)))
           .filter(product => {
             const displayNameKey = getProductCardTitle(product)
               .trim()
@@ -5403,8 +5808,8 @@
           })
           .forEach(product => {
             const imageUrl = normalizeProductImageUrl(product.image_url);
-            const title = getProductCardTitle(product);
-            const vkUrl = String(product.vk_url || '').trim();
+            const title = String(getProductCardTitle(product));
+            const vkUrl = getSafeVkUrl(product.vk_url);
 
             const card = document.createElement(vkUrl ? 'a' : 'div');
             card.className = 'product-card';
@@ -5421,12 +5826,23 @@
                 ? formatPrice(product.price)
                 : '';
 
-            card.innerHTML = `
-              <div class="product-card-image"><img src="${imageUrl}" alt="${title}"></div>
-              <h3>${title}</h3>
-              <p>${priceText}</p>
-            `;
+            const imageWrap = document.createElement('div');
+            imageWrap.className = 'product-card-image';
 
+            const image = document.createElement('img');
+            image.src = imageUrl;
+            image.alt = title;
+            image.loading = 'lazy';
+            image.decoding = 'async';
+
+            const heading = document.createElement('h3');
+            heading.textContent = title;
+
+            const price = document.createElement('p');
+            price.textContent = priceText;
+
+            imageWrap.appendChild(image);
+            card.append(imageWrap, heading, price);
             track.appendChild(card);
           });
 
@@ -5506,18 +5922,26 @@
           const type = String(link.dataset.contactType || '').toLowerCase();
           const contact = byType.get(type);
 
-          if (!contact?.value) {
+          const safeContactUrl = getSafeHttpUrl(
+            contact?.value,
+            { allowSameOrigin: false }
+          );
+
+          if (!safeContactUrl) {
             link.dataset.contactReady = 'false';
+            link.removeAttribute('href');
+            link.removeAttribute('target');
+            link.removeAttribute('rel');
             return;
           }
 
-          link.href = contact.value;
+          link.href = safeContactUrl;
           link.target = '_blank';
           link.rel = 'noopener noreferrer';
           link.dataset.contactReady = 'true';
 
           const label = contact.title || link.textContent.trim() || type.toUpperCase();
-          link.textContent = `${label} · ${contactDisplayUrl(contact.value)}`;
+          link.textContent = `${label} · ${contactDisplayUrl(safeContactUrl)}`;
           link.setAttribute(
             'aria-label',
             `${label} — открыть в новом окне`

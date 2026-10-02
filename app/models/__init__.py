@@ -14,6 +14,8 @@ from app.models.orders import (
     PrivacyPolicyVersion,
 )
 
+from app.models.admin_users import AdminUser
+
 __all__ = [
     "Category",
     "Product",
@@ -24,5 +26,6 @@ __all__ = [
     "OrderItem",
     "PrivacyPolicyVersion",
     "ConsentTextVersion",
-    "ConsentEvent"
+    "ConsentEvent",
+    "AdminUser",
 ]

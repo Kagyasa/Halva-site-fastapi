@@ -125,6 +125,12 @@ async def create_order(
             },
         )
 
+    if order_data.website.strip():
+        raise HTTPException(
+            status_code=400,
+            detail="Некорректные данные формы.",
+        )
+
     order_id = uuid.uuid4().hex
     request_id = uuid.uuid4().hex
 

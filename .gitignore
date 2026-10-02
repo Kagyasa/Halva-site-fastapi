@@ -1,16 +1,34 @@
+# Python
 venv/
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 
-halva.db
+# Temporary / backup files
+*.bak
 
+# Local databases
+halva.db
+*.sqlite
+*.sqlite3
+
+# Environment variables / secrets
 .env
 .env.*
+!.env.example
 
+# IDE
 .vscode/
 .idea/
 
+# OS
 .DS_Store
 Thumbs.db
+
+# Python tools / tests
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/

@@ -20,6 +20,47 @@ app = FastAPI(
     version="1.0.0",
 )
 
+
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+
+    # Не позволяем браузеру угадывать MIME-тип файлов.
+    response.headers["X-Content-Type-Options"] = "nosniff"
+
+    # Запрещаем открывать сайт внутри iframe.
+    # Это защищает от clickjacking.
+    response.headers["X-Frame-Options"] = "DENY"
+
+    # Ограничиваем передачу Referer на сторонние сайты.
+    response.headers["Referrer-Policy"] = (
+        "strict-origin-when-cross-origin"
+    )
+
+    # Сайту Halva эти возможности браузера сейчас не нужны.
+    response.headers["Permissions-Policy"] = (
+        "camera=(), "
+        "microphone=(), "
+        "geolocation=()"
+    )
+
+    # Изолируем окно сайта от других origin.
+    response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
+
+    # Запрещаем старым плагинам вроде Flash загружать данные сайта.
+    response.headers["X-Permitted-Cross-Domain-Policies"] = "none"
+
+    # В админке находятся заявки и персональные данные.
+    # Не разрешаем браузеру сохранять такие страницы в кэше.
+    if request.url.path.startswith("/admin"):
+        response.headers["Cache-Control"] = (
+            "no-store, no-cache, must-revalidate, max-age=0"
+        )
+        response.headers["Pragma"] = "no-cache"
+
+    return response
+
+
 setup_admin(app)
 
 app.mount(

@@ -113,9 +113,9 @@ class FailedLoginRateLimiter:
     def __init__(
         self,
         *,
-        max_failures: int = 1,
+        max_failures: int = 15,
         failure_window_seconds: int = 15 * 60,
-        block_seconds: int = 1 * 60,
+        block_seconds: int = 15 * 60,
     ) -> None:
         self.max_failures = max_failures
         self.failure_window_seconds = failure_window_seconds
