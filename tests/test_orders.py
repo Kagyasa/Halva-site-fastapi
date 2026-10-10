@@ -1,3 +1,4 @@
+import ssl
 from datetime import timedelta
 from decimal import Decimal
 from unittest.mock import patch
@@ -58,6 +59,27 @@ def test_notification_failure_retry_and_restart(client, payload, db_session):
         assert send.call_count == 1
     db_session.expire_all()
     assert notification.status == "sent" and notification.attempts == 2
+
+
+def test_certificate_failure_logs_reason_without_raw_smtp_response(client, payload, db_session):
+    assert client.post("/api/orders/", json=payload).status_code == 200
+    error = ssl.SSLCertVerificationError(1, "private SMTP response with credentials")
+    error.verify_code = 20
+    error.verify_message = "unable to get\nlocal issuer certificate"
+    with (
+        patch("app.services.notifications._send_email_sync", side_effect=error),
+        patch("app.services.notifications.logger.warning") as warning,
+    ):
+        assert deliver_one()
+    warning.assert_called_once()
+    logged = warning.call_args.args[0] % warning.call_args.args[1:]
+    assert "verify_code=20; unable to get local issuer certificate" in logged
+    assert "private SMTP response" not in logged
+    assert "credentials" not in logged
+    db_session.expire_all()
+    notification = db_session.scalar(select(EmailNotification))
+    assert notification.status == "pending" and notification.attempts == 1
+    assert notification.last_error == "SSLCertVerificationError"
 
 
 @pytest.mark.parametrize(

@@ -11,7 +11,9 @@ from starlette.testclient import TestClient
 from alembic import command
 
 # Tests never use a developer's .env database or real SMTP service.
-os.environ.update(APP_ENV="test", DATABASE_URL="sqlite://", EMAIL_WORKER_ENABLED="false")
+os.environ.update(
+    APP_ENV="test", DATABASE_URL="sqlite://", EMAIL_WORKER_ENABLED="false", DEMO_MODE="false"
+)
 
 import app.admin as admin_module
 import app.admin_security as security_module
@@ -52,6 +54,11 @@ def db_session(tmp_path, monkeypatch):
     for module in (database_module, admin_module, security_module, cli_module, notifications):
         monkeypatch.setattr(module, "SessionLocal", factory)
     monkeypatch.setattr(orders, "order_rate_limiter", rate_limit.OrderRateLimiter())
+    monkeypatch.setattr(
+        orders,
+        "demo_order_rate_limiter",
+        rate_limit.OrderRateLimiter(short_max_requests=100, daily_max_requests=1000),
+    )
     monkeypatch.setattr(
         security_module, "admin_login_rate_limiter", rate_limit.FailedLoginRateLimiter()
     )

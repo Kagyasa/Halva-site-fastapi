@@ -110,7 +110,39 @@ def test_smtp_validates_certificates(monkeypatch, use_ssl):
     import ssl
 
     assert context.verify_mode == ssl.CERT_REQUIRED
+    bundle_context = ssl.create_default_context(cafile=email.certifi.where())
+    assert set(bundle_context.get_ca_certs(binary_form=True)) <= set(
+        context.get_ca_certs(binary_form=True)
+    )
     smtp.send_message.assert_called_once()
+
+
+@pytest.mark.parametrize("use_ssl", [True, False])
+def test_smtp_certificate_failure_never_sends_credentials(monkeypatch, use_ssl):
+    import ssl
+
+    settings = Settings(
+        _env_file=None,
+        smtp_host="smtp.test.invalid",
+        smtp_username="test",
+        smtp_password="test",
+        orders_email="test@example.invalid",
+        smtp_use_ssl=use_ssl,
+        smtp_starttls=not use_ssl,
+    )
+    monkeypatch.setattr(email, "get_settings", lambda: settings)
+    transport = MagicMock()
+    smtp = transport.return_value.__enter__.return_value
+    failure = ssl.SSLCertVerificationError("untrusted certificate")
+    if use_ssl:
+        transport.side_effect = failure
+    else:
+        smtp.starttls.side_effect = failure
+    monkeypatch.setattr(email.smtplib, "SMTP_SSL" if use_ssl else "SMTP", transport)
+    with pytest.raises(ssl.SSLCertVerificationError):
+        email._send_email_sync("Тест", "Только тест", "<p>Только тест</p>")
+    smtp.login.assert_not_called()
+    smtp.send_message.assert_not_called()
 
 
 def test_limiter_removes_expired_ip_buckets(monkeypatch):

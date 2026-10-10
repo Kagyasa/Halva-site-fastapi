@@ -26,7 +26,7 @@ jobs:
       - run: pip install -r requirements-dev.txt
       - run: ruff check .
       - run: ruff format --check app tests alembic/env.py alembic/versions/b1e702e3850a_reliable_orders.py fill_display_names.py fill_vk_urls.py migrate_from_django.py seed_legal_documents.py seed_site_contacts.py
-      - run: pytest -q
+      - run: python -m pytest -q
         env:
           TEST_DATABASE_URL: postgresql+psycopg://halva_test:test_only_password@localhost:5432/halva_tests
   frontend:

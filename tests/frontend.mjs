@@ -32,7 +32,20 @@ const products = [
     slug: "bento-tort-klubnika-plombir",
     name: "Десерт <b>",
     price: "100.75",
-    category: { name: "Десерты", slug: "desserts" },
+    category: {
+      id: "category-1",
+      name: "Десерты <i>",
+      slug: "desserts",
+      is_active: true,
+    },
+    size: "S",
+    diameter_cm: "18.00",
+    height_min_cm: "5.00",
+    height_max_cm: "6.00",
+    weight_min_grams: 800,
+    weight_max_grams: 1000,
+    portions_min: 8,
+    portions_max: 12,
     is_available_for_order: true,
   },
 ];
@@ -67,6 +80,7 @@ const consent = {
 };
 const checkout = {
   available: true,
+  demo_mode: true,
   reason: null,
   minimum_date: "2099-01-01",
   delivery_price: "150.00",
@@ -151,19 +165,47 @@ async function until(predicate) {
 }
 const main = await loadModule(path.join(root, "site.js"));
 await main.link((specifier, referencing) =>
-  loadModule(path.resolve(path.dirname(referencing.identifier), specifier)),
+  loadModule(
+    path.resolve(
+      path.dirname(referencing.identifier),
+      specifier.split(/[?#]/, 1)[0],
+    ),
+  ),
 );
 await main.evaluate();
 await until(() => document.querySelectorAll(".showcase-tab").length === 2);
+await until(() => document.querySelector("#price-categories .price-pill"));
 assert.match(
-  document.querySelector("[data-product-slug]").textContent,
+  document.querySelector("#price-categories .price-pill").textContent,
   /100,75/,
+);
+assert.equal(
+  document.querySelector(".price-card-title").textContent,
+  products[0].category.name,
+);
+assert.equal(
+  document.querySelector(".price-product-name").textContent,
+  products[0].name,
+);
+assert.equal(
+  document.querySelector("#price-categories i, #price-categories b"),
+  null,
+);
+assert.match(
+  document.querySelector(".price-product-details").textContent,
+  /0,8–1 кг/,
+);
+assert.match(
+  document.querySelector(".price-product-details").textContent,
+  /8–12 порций/,
 );
 assert.equal(
   document.querySelector('[data-contact-type="telegram"]').href,
   "https://vk.ru/halva_tort_snz",
 );
-window.openOrderModal("product-1");
+document
+  .querySelector('#price-categories button[data-product-id="product-1"]')
+  .click();
 await until(() =>
   document.querySelector('#order-product-list input[type="checkbox"]'),
 );
@@ -175,6 +217,8 @@ assert.equal(
   "location-1",
 );
 assert.equal(document.getElementById("order-date").min, checkout.minimum_date);
+assert.equal(document.getElementById("order-demo-notice").hidden, false);
+assert.equal(document.getElementById("order-submit").disabled, false);
 document.getElementById("order-name").value = "Тестовый клиент";
 document.getElementById("order-phone").value = "89227330330";
 document.getElementById("order-time").value = "12:00";
@@ -183,12 +227,27 @@ const quantity = document.querySelector(".order-product-quantity-input");
 quantity.value = "2";
 quantity.dispatchEvent(new window.Event("change"));
 assert.match(document.getElementById("order-total").textContent, /201,50/);
-const submit = () =>
-  document
-    .getElementById("order-form")
-    .dispatchEvent(
-      new window.Event("submit", { bubbles: true, cancelable: true }),
-    );
+const orderForm = document.getElementById("order-form");
+const submitButton = document.getElementById("order-submit");
+assert.equal(submitButton.type, "button");
+for (const id of ["order-name", "order-phone", "order-submit"]) {
+  const enter = new window.KeyboardEvent("keydown", {
+    key: "Enter",
+    bubbles: true,
+    cancelable: true,
+  });
+  document.getElementById(id).dispatchEvent(enter);
+  if (id === "order-submit") assert.equal(enter.defaultPrevented, true);
+}
+const implicitSubmit = new window.Event("submit", {
+  bubbles: true,
+  cancelable: true,
+});
+orderForm.dispatchEvent(implicitSubmit);
+assert.equal(implicitSubmit.defaultPrevented, true);
+await new Promise((resolve) => setTimeout(resolve, 0));
+assert.equal(submissions.length, 0);
+const submit = () => submitButton.click();
 submit();
 await until(() =>
   document
@@ -217,9 +276,18 @@ assert.match(
   document.getElementById("order-result-text").textContent,
   /201,50/,
 );
+assert.doesNotMatch(
+  document.getElementById("order-result-text").textContent,
+  /№|12345678/,
+);
 window.closeOrderResultModal();
 assert.equal(document.getElementById("order-name").value, "");
 assert(!document.getElementById("order-modal").classList.contains("is-open"));
+
+checkout.demo_mode = false;
+window.openOrderModal("product-1");
+await until(() => document.getElementById("order-demo-notice").hidden);
+window.closeOrderModal();
 
 const showcase = modules.get(path.join(root, "showcase.js")).namespace;
 stallShowcase = true;
@@ -243,7 +311,94 @@ assert.match(
   document.getElementById("showcase-desserts").textContent,
   /Вторая витрина/,
 );
+
+const prices = modules.get(path.join(root, "prices.js")).namespace;
+const added = {
+  ...products[0],
+  id: "product-new",
+  slug: "new",
+  name: "Новый товар",
+  category: { id: "category-2", name: "Новая категория", is_active: true },
+};
+prices.renderPriceList([
+  products[0],
+  added,
+  { ...added, id: "disabled", is_available_for_order: false },
+  { ...added, id: "inactive", is_active: false },
+  {
+    ...added,
+    id: "inactive-category",
+    category: { ...added.category, is_active: false },
+  },
+]);
+assert.equal(
+  document.querySelectorAll("#price-categories .price-card").length,
+  2,
+);
+assert.equal(
+  document.querySelectorAll("#price-categories .price-pill").length,
+  2,
+);
+assert(document.querySelector('[data-product-id="product-new"]'));
+prices.renderPriceList([
+  {
+    ...added,
+    name: "Переименованный товар",
+    price: "250.25",
+    category: { ...added.category, name: "Переименованная категория" },
+    size: null,
+    diameter_cm: null,
+    height_min_cm: null,
+    height_max_cm: null,
+    weight_min_grams: null,
+    weight_max_grams: null,
+    portions_min: null,
+    portions_max: null,
+  },
+]);
+assert.equal(
+  document.querySelector(".price-card-title").textContent,
+  "Переименованная категория",
+);
+assert.equal(
+  document.querySelector(".price-product-name").textContent,
+  "Переименованный товар",
+);
+assert.match(document.querySelector(".price-pill").textContent, /250,25/);
+assert.equal(document.querySelector(".price-product-details"), null);
+assert.equal(
+  prices.productCharacteristics({
+    weight_min_grams: 600,
+    weight_max_grams: 600,
+  }),
+  "600 г",
+);
+assert.equal(prices.productCharacteristics({ portions_min: 2 }), "от 2 порций");
+assert.equal(
+  prices.productCharacteristics({ weight_max_grams: 900 }),
+  "до 900 г",
+);
+prices.renderPriceList([]);
+assert.equal(
+  document.querySelectorAll("#price-categories .price-card").length,
+  0,
+);
+assert.match(
+  document.getElementById("price-categories").textContent,
+  /нет товаров/,
+);
+assert.equal(document.querySelector(".price-hint").hidden, true);
+prices.showPriceMessage("Не удалось загрузить прайс.");
+assert.match(
+  document.getElementById("price-categories").textContent,
+  /Не удалось/,
+);
+prices.renderPriceList(products);
+assert.equal(
+  document.getElementById("price-categories").getAttribute("aria-busy"),
+  "false",
+);
 console.log(
-  "Frontend integration checks passed: prices, locations, consent versions, preserved form, idempotency, showcase race.",
+  "Frontend integration checks passed: database price categories, characteristics, availability, price-to-order selection, locations, consent versions, preserved form, idempotency, showcase race.",
 );
 dom.window.close();
