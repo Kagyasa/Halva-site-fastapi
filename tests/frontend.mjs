@@ -49,6 +49,20 @@ const products = [
     is_available_for_order: true,
   },
 ];
+products.push(
+  ...Array.from({ length: 48 }, (_, index) => ({
+    ...products[0],
+    id: `extra-${index}`,
+    slug: `extra-${index}`,
+    name: `Дополнительный десерт ${index}`,
+    category: {
+      id: `category-${2 + (index % 3)}`,
+      name: `Категория ${2 + (index % 3)}`,
+      slug: `category-${2 + (index % 3)}`,
+      is_active: true,
+    },
+  })),
+);
 const locations = [
   {
     id: "location-1",
@@ -207,10 +221,25 @@ document
   .querySelector('#price-categories button[data-product-id="product-1"]')
   .click();
 await until(() =>
-  document.querySelector('#order-product-list input[type="checkbox"]'),
+  document.querySelector(
+    '#order-product-list input[type="checkbox"][value="product-1"]',
+  ),
 );
 assert(
-  document.querySelector('#order-product-list input[type="checkbox"]').checked,
+  document.querySelector(
+    '#order-product-list input[type="checkbox"][value="product-1"]',
+  ).checked,
+);
+assert.equal(
+  document.querySelectorAll("#order-product-list .order-product-quantity-input")
+    .length,
+  49,
+);
+assert.equal(
+  document.querySelectorAll(
+    "#order-product-list .order-product-quantity-input:disabled",
+  ).length,
+  48,
 );
 assert.equal(
   document.getElementById("order-pickup-location").value,
@@ -223,7 +252,10 @@ document.getElementById("order-name").value = "Тестовый клиент";
 document.getElementById("order-phone").value = "89227330330";
 document.getElementById("order-time").value = "12:00";
 document.getElementById("order-consent").checked = true;
-const quantity = document.querySelector(".order-product-quantity-input");
+const quantity = document.querySelector(
+  '#order-product-list .order-product-quantity-input[data-product-id="product-1"]',
+);
+assert.equal(quantity.disabled, false);
 quantity.value = "2";
 quantity.dispatchEvent(new window.Event("change"));
 assert.match(document.getElementById("order-total").textContent, /201,50/);

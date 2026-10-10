@@ -28,6 +28,94 @@ function priceCategoryBottom(price) {
   return lastBlock.getBoundingClientRect().bottom;
 }
 
+function positionPriceHint() {
+  const price = document.querySelector(".price-section");
+  const hint = price?.querySelector(".price-hint");
+  const arrow = price?.querySelector(".price-hint-arrow");
+  const buttons = [
+    ...(price?.querySelectorAll("#price-categories .price-pill") || []),
+  ];
+  const button = buttons[0];
+  if (!hint || !arrow) return;
+
+  const hidden = !button || isMobileLayout();
+  hint.hidden = hidden;
+  arrow.hidden = hidden;
+  if (hidden) return;
+
+  // Both rectangles share the section's reveal translation and page scale.
+  const priceBounds = price.getBoundingClientRect();
+  const buttonBounds = button.getBoundingClientRect();
+  const scale = priceBounds.width / price.offsetWidth || 1;
+  const buttonRight = (buttonBounds.right - priceBounds.left) / scale;
+  const buttonBottom = (buttonBounds.bottom - priceBounds.top) / scale;
+  const strawberry = price.querySelector(".price-strawberry");
+  const strawberryBottom = strawberry
+    ? (strawberry.getBoundingClientRect().bottom - priceBounds.top) / scale
+    : buttonBottom;
+  const hintTop = Math.max(buttonBottom + 20, strawberryBottom + 22);
+
+  hint.style.left = `${buttonRight + 41}px`;
+  hint.style.top = `${hintTop}px`;
+
+  const hintBounds = hint.getBoundingClientRect();
+  const hintLeft = (hintBounds.left - priceBounds.left) / scale;
+  const hintMiddle =
+    (hintBounds.top + hintBounds.height / 2 - priceBounds.top) / scale;
+  let nearest = null;
+  let shortestDistance = Infinity;
+  for (const candidate of buttons) {
+    const bounds = candidate.getBoundingClientRect();
+    const rect = {
+      left: (bounds.left - priceBounds.left) / scale,
+      right: (bounds.right - priceBounds.left) / scale,
+      top: (bounds.top - priceBounds.top) / scale,
+      bottom: (bounds.bottom - priceBounds.top) / scale,
+    };
+    const closestX = Math.max(rect.left, Math.min(hintLeft, rect.right));
+    const closestY = Math.max(rect.top, Math.min(hintMiddle, rect.bottom));
+    const distance = Math.hypot(hintLeft - closestX, hintMiddle - closestY);
+    if (distance < shortestDistance) {
+      shortestDistance = distance;
+      nearest = rect;
+    }
+  }
+
+  // Draw to the nearest price; the curve can turn up or down from the caption.
+  const targetX = nearest.right + 6;
+  const inset = Math.min(8, (nearest.bottom - nearest.top) / 2);
+  const targetY = Math.max(
+    nearest.top + inset,
+    Math.min(hintMiddle, nearest.bottom - inset),
+  );
+  const startX = hintLeft - 8;
+  const startY = hintMiddle;
+  const left = Math.min(startX - 10, targetX) - 8;
+  const top = Math.min(startY, targetY) - 12;
+  const width = Math.max(startX, targetX + 26) - left + 8;
+  const height = Math.abs(startY - targetY) + 24;
+  const endX = targetX - left;
+  const endY = targetY - top;
+  arrow.style.left = `${left}px`;
+  arrow.style.top = `${top}px`;
+  arrow.style.width = `${width}px`;
+  arrow.style.height = `${height}px`;
+  const svg = arrow.querySelector("svg");
+  svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+  arrow
+    .querySelector(".price-hint-curve")
+    .setAttribute(
+      "d",
+      `M ${startX - left} ${startY - top} C ${startX - left - 10} ${startY - top} ${endX + 26} ${endY} ${endX} ${endY}`,
+    );
+  arrow
+    .querySelector(".price-hint-arrowhead")
+    .setAttribute(
+      "d",
+      `M ${endX + 11} ${endY - 6} L ${endX} ${endY} L ${endX + 11} ${endY + 6}`,
+    );
+}
+
 export function isMobileLayout() {
   return window.innerWidth <= 1024;
 }
@@ -184,6 +272,7 @@ export function resizeShowcaseForContent() {
     const title = products.querySelector(".products-title");
     const currentGap = textBounds(title).top - priceCategoryBottom(price);
     products.style.paddingTop = `${Math.max(0, PRICE_PRODUCTS_GAP.mobile - currentGap)}px`;
+    positionPriceHint();
     return;
   }
 
@@ -237,6 +326,7 @@ export function resizeShowcaseForContent() {
   footer.style.top = `${DESKTOP_LAYOUT_BASE.footerTop + showcaseDesktopDelta + priceDesktopDelta + contactsDesktopDelta}px`;
 
   fitDesignStage();
+  positionPriceHint();
 }
 
 export function initRevealAnimations() {

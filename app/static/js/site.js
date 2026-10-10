@@ -2,7 +2,7 @@ import {
   openOrderModal,
   closeOrderModal,
   closeOrderResultModal,
-} from "./order.js?v=20261010-category-edge";
+} from "./order.js?v=20261010-nearest-price-hint";
 import {
   openPrivacyPolicy,
   openConsentText,
@@ -11,15 +11,15 @@ import {
 import {
   loadProducts,
   scrollProducts,
-} from "./catalog.js?v=20261010-category-edge";
+} from "./catalog.js?v=20261010-nearest-price-hint";
 import { loadLocations, loadFooterContacts } from "./contacts.js";
-import { loadShowcase } from "./showcase.js?v=20261010-category-edge";
+import { loadShowcase } from "./showcase.js?v=20261010-nearest-price-hint";
 import {
   toggleMobileMenu,
   closeMobileMenu,
   resizeShowcaseForContent,
   initRevealAnimations,
-} from "./layout.js?v=20261010-category-edge";
+} from "./layout.js?v=20261010-nearest-price-hint";
 
 // Only template event handlers are exposed; module state stays private.
 Object.assign(window, {

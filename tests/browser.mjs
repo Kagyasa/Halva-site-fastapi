@@ -167,10 +167,11 @@ try {
     await page
       .locator('#price-categories button[data-product-id="product-1"]')
       .click();
-    await page
-      .locator('#order-product-list input[type="checkbox"]')
-      .first()
-      .waitFor();
+    const selectedProduct = page.locator(
+      '#order-product-list input[type="checkbox"][value="product-1"]',
+    );
+    await selectedProduct.waitFor();
+    assert.equal(await selectedProduct.isChecked(), true);
     const panel = await page.locator(".order-modal-panel").boundingBox();
     assert(
       panel.x >= 0 && panel.x + panel.width <= width + 1,
@@ -180,8 +181,13 @@ try {
     await page.locator("#order-phone").fill("89227330330");
     await page.locator("#order-time").fill("12:00");
     await page.locator("#order-consent").check();
-    await page.locator(".order-product-quantity-input").fill("2");
-    await page.locator(".order-product-quantity-input").blur();
+    const quantity = page.locator(
+      '#order-product-list .order-product-quantity-input[data-product-id="product-1"]',
+    );
+    assert.equal(await quantity.count(), 1);
+    assert.equal(await quantity.isEnabled(), true);
+    await quantity.fill("2");
+    await quantity.blur();
     assert.match(await page.locator("#order-total").textContent(), /201,50/);
     await page.locator(".order-modal-close").focus();
     await page.keyboard.press("Shift+Tab");

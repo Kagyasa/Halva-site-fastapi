@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500&family=Old+Standard+TT:wght@400&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="/static/css/site.css?v=20261010-category-edge">
+    <link rel="stylesheet" href="/static/css/site.css?v=20261010-nearest-price-hint">
 </head>
 <body>
   <header class="site-header">
@@ -106,8 +106,13 @@
           <p class="price-empty">Загрузка прайса…</p>
         </div>
 
-        <p class="price-hint">Нажми, чтобы заказать</p>
-        <img class="price-hint-arrow" src="/static/images/arrow.png" alt="">
+        <p class="price-hint" hidden>Нажми, чтобы заказать</p>
+        <span class="price-hint-arrow" aria-hidden="true" hidden>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 82 80" focusable="false">
+            <path class="price-hint-curve" d="M 51 72 C 73 36 36 36 8 8"></path>
+            <path class="price-hint-arrowhead" d="M 9 23 L 8 8 L 23 9"></path>
+          </svg>
+        </span>
       </section>
 
       <section class="products-section reveal-block" id="products-section">
@@ -399,6 +404,6 @@
   </div>
 
 
-    <script type="module" src="/static/js/site.js?v=20261010-category-edge"></script>
+    <script type="module" src="/static/js/site.js?v=20261010-nearest-price-hint"></script>
 </body>
 </html>

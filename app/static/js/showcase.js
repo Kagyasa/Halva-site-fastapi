@@ -1,6 +1,6 @@
 import { fetchJSON } from "./api.js";
 import { formatPrice } from "./utils.js";
-import { resizeShowcaseForContent } from "./layout.js?v=20261010-category-edge";
+import { resizeShowcaseForContent } from "./layout.js?v=20261010-nearest-price-hint";
 
 let generation = 0;
 let activeRequest = null;

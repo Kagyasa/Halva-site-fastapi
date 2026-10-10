@@ -1,5 +1,5 @@
 import { formatPrice } from "./utils.js";
-import { resizeShowcaseForContent } from "./layout.js?v=20261010-category-edge";
+import { resizeShowcaseForContent } from "./layout.js?v=20261010-nearest-price-hint";
 
 const numberFormat = new Intl.NumberFormat("ru-RU", {
   maximumFractionDigits: 2,
@@ -123,7 +123,5 @@ export function renderPriceList(products) {
   const container = document.getElementById("price-categories");
   container.replaceChildren(...cards);
   container.setAttribute("aria-busy", "false");
-  document.querySelector(".price-hint").hidden = false;
-  document.querySelector(".price-hint-arrow").hidden = false;
   requestAnimationFrame(resizeShowcaseForContent);
 }
