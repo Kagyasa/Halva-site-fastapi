@@ -3,7 +3,6 @@ from sqlalchemy import select
 from app.database import SessionLocal
 from app.models.catalog import SiteContact
 
-
 SOCIAL_CONTACTS = [
     {
         "type": "vk",
@@ -25,7 +24,7 @@ SOCIAL_CONTACTS = [
 
 def main():
     created = 0
-    updated = 0
+    preserved = 0
 
     with SessionLocal() as db:
         for data in SOCIAL_CONTACTS:
@@ -46,15 +45,13 @@ def main():
                 db.add(contact)
                 created += 1
             else:
-                contact.title = data["title"]
-                contact.value = data["value"]
-                contact.is_active = True
-                updated += 1
+                # Preserve admin edits, including the current TG and MAX links.
+                preserved += 1
 
         db.commit()
 
     print(f"Готово. Создано записей: {created}")
-    print(f"Обновлено записей: {updated}")
+    print(f"Сохранено существующих записей без изменений: {preserved}")
 
 
 if __name__ == "__main__":

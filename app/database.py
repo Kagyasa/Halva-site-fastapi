@@ -1,25 +1,11 @@
 from collections.abc import Generator
 
-from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy import URL, create_engine
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
+from app.config import get_settings
 
-class DatabaseSettings(BaseSettings):
-    db_host: str = "localhost"
-    db_port: int = 5432
-    db_name: str = "halva"
-    db_user: str = "halva_user"
-    db_password: str
-
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        extra="ignore",
-    )
-
-
-settings = DatabaseSettings()
+settings = get_settings()
 
 DATABASE_URL = URL.create(
     drivername="postgresql+psycopg",
@@ -29,6 +15,12 @@ DATABASE_URL = URL.create(
     port=settings.db_port,
     database=settings.db_name,
 )
+if settings.database_url:
+    from sqlalchemy.engine import make_url
+
+    DATABASE_URL = make_url(settings.database_url)
+    if DATABASE_URL.drivername == "postgresql":
+        DATABASE_URL = DATABASE_URL.set(drivername="postgresql+psycopg")
 
 
 class Base(DeclarativeBase):
@@ -38,6 +30,7 @@ class Base(DeclarativeBase):
 engine = create_engine(
     DATABASE_URL,
     pool_pre_ping=True,
+    hide_parameters=True,
 )
 
 

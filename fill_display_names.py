@@ -1,8 +1,9 @@
+import argparse
+
 from sqlalchemy import select
 
 from app.database import SessionLocal
 from app.models.catalog import Product
-
 
 DISPLAY_NAMES = {
     "bento-ptichka": "Бенто «Птичка»",
@@ -45,15 +46,27 @@ DISPLAY_NAMES = {
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--overwrite", action="store_true", help="Явно заменить заполненные значения"
+    )
+    args = parser.parse_args()
     updated = 0
     missing = []
 
     with SessionLocal() as db:
+        by_slug = {
+            product.slug: product
+            for product in db.scalars(select(Product).where(Product.slug.in_(DISPLAY_NAMES))).all()
+        }
         for slug, display_name in DISPLAY_NAMES.items():
-            product = db.scalar(select(Product).where(Product.slug == slug))
+            product = by_slug.get(slug)
 
             if product is None:
                 missing.append(slug)
+                continue
+
+            if product.display_name and not args.overwrite:
                 continue
 
             product.display_name = display_name

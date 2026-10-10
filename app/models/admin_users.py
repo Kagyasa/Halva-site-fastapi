@@ -1,19 +1,28 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, String
+from sqlalchemy import (
+    Boolean,
+    CheckConstraint,
+    DateTime,
+    Index,
+    String,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
-
-
-def utc_now() -> datetime:
-    return datetime.now(timezone.utc)
+from app.services.common import utc_now
 
 
 class AdminUser(Base):
     __tablename__ = "admin_users"
+    __table_args__ = (
+        CheckConstraint("role IN ('admin', 'staff')", name="ck_admin_users_role"),
+        UniqueConstraint("username", name="uq_admin_users_username"),
+        Index("ix_admin_users_username", "username"),
+    )
 
     id: Mapped[int] = mapped_column(
         primary_key=True,
@@ -22,8 +31,6 @@ class AdminUser(Base):
 
     username: Mapped[str] = mapped_column(
         String(100),
-        unique=True,
-        index=True,
         nullable=False,
     )
 

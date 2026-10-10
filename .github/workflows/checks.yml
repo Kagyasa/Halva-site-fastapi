@@ -1,0 +1,56 @@
+name: Checks
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: halva_test
+          POSTGRES_PASSWORD: test_only_password
+          POSTGRES_DB: halva_tests
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U halva_test -d halva_tests"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements-dev.txt
+      - run: ruff check .
+      - run: ruff format --check app tests alembic/env.py alembic/versions/b1e702e3850a_reliable_orders.py fill_display_names.py fill_vk_urls.py migrate_from_django.py seed_legal_documents.py seed_site_contacts.py
+      - run: pytest -q
+        env:
+          TEST_DATABASE_URL: postgresql+psycopg://halva_test:test_only_password@localhost:5432/halva_tests
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm test
+      - run: npx prettier --check app/static/js tests/frontend.mjs tests/browser.mjs
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: npx playwright install --with-deps chromium
+      - name: Start isolated test server
+        run: python -m uvicorn app.main:app --host 127.0.0.1 --port 8765 > server-test.log 2>&1 &
+        env:
+          APP_ENV: test
+          DATABASE_URL: sqlite://
+          EMAIL_WORKER_ENABLED: "false"
+      - run: curl --retry 15 --retry-connrefused --retry-delay 1 http://127.0.0.1:8765/api/health
+      - run: npm run test:browser

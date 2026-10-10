@@ -78,35 +78,37 @@ class OrderRateLimiter:
     - не более 6 за скользящие 24 часа.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, *, short_max_requests: int = 3, daily_max_requests: int = 6) -> None:
         self.short_limit = SlidingWindowRateLimiter(
-            max_requests=3,
+            max_requests=short_max_requests,
             window_seconds=10 * 60,
         )
+        self._lock = Lock()
         self.daily_limit = SlidingWindowRateLimiter(
-            max_requests=6,
+            max_requests=daily_max_requests,
             window_seconds=24 * 60 * 60,
         )
 
     def check(self, key: str) -> tuple[bool, int]:
-        short_allowed, short_retry = self.short_limit.check(key)
+        with self._lock:
+            short_allowed, short_retry = self.short_limit.check(key)
 
-        if not short_allowed:
-            return False, short_retry
+            if not short_allowed:
+                return False, short_retry
 
-        daily_allowed, daily_retry = self.daily_limit.check(key)
+            daily_allowed, daily_retry = self.daily_limit.check(key)
 
-        if not daily_allowed:
-            self.short_limit.rollback_last(key)
-            return False, daily_retry
+            if not daily_allowed:
+                self.short_limit.rollback_last(key)
+                return False, daily_retry
 
-        return True, 0
+            return True, 0
 
 
 class FailedLoginRateLimiter:
     """Защита админки от перебора пароля.
 
-    После 5 неудачных попыток с одного IP за 15 минут
+    После 15 неудачных попыток с одного IP за 15 минут
     блокирует новые попытки с этого IP на 15 минут.
     """
 
@@ -122,6 +124,7 @@ class FailedLoginRateLimiter:
         self.block_seconds = block_seconds
 
         self._failures: dict[str, deque[float]] = defaultdict(deque)
+        self._checks = 0
         self._blocked_until: dict[str, float] = {}
         self._lock = Lock()
 
@@ -129,6 +132,7 @@ class FailedLoginRateLimiter:
         now = time.monotonic()
 
         with self._lock:
+            self._cleanup_locked(now)
             blocked_until = self._blocked_until.get(key)
 
             if blocked_until is None:
@@ -146,6 +150,7 @@ class FailedLoginRateLimiter:
         cutoff = now - self.failure_window_seconds
 
         with self._lock:
+            self._cleanup_locked(now)
             blocked_until = self._blocked_until.get(key)
 
             if blocked_until is not None and blocked_until > now:
@@ -165,6 +170,21 @@ class FailedLoginRateLimiter:
                 return True, self.block_seconds
 
             return False, 0
+
+    def _cleanup_locked(self, now: float) -> None:
+        self._checks += 1
+        if self._checks % 100:
+            return
+        for key, until in list(self._blocked_until.items()):
+            if until <= now:
+                self._blocked_until.pop(key, None)
+                self._failures.pop(key, None)
+        cutoff = now - self.failure_window_seconds
+        for key, bucket in list(self._failures.items()):
+            while bucket and bucket[0] <= cutoff:
+                bucket.popleft()
+            if not bucket and key not in self._blocked_until:
+                self._failures.pop(key, None)
 
     def reset(self, key: str) -> None:
         with self._lock:

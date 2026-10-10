@@ -1,27 +1,29 @@
-import uuid
 from datetime import datetime
 from decimal import Decimal
 
 from sqlalchemy import (
     Boolean,
+    CheckConstraint,
     DateTime,
     ForeignKey,
     Integer,
     Numeric,
     String,
     Text,
+    UniqueConstraint,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
-
-
-def generate_uuid() -> str:
-    return uuid.uuid4().hex
+from app.services.common import generate_uuid, utc_now
 
 
 class Category(Base):
     __tablename__ = "categories"
+    __table_args__ = (UniqueConstraint("slug", name="uq_categories_slug"),)
+
+    def __str__(self) -> str:
+        return self.name
 
     id: Mapped[str] = mapped_column(
         String(32),
@@ -46,15 +48,15 @@ class Category(Base):
     )
 
     created_at: Mapped[datetime] = mapped_column(
-        DateTime,
-        default=datetime.utcnow,
+        DateTime(timezone=True),
+        default=utc_now,
         nullable=False,
     )
 
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime,
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
+        DateTime(timezone=True),
+        default=utc_now,
+        onupdate=utc_now,
         nullable=False,
     )
 
@@ -65,6 +67,44 @@ class Category(Base):
 
 class Product(Base):
     __tablename__ = "products"
+    __table_args__ = (
+        UniqueConstraint("slug", name="uq_products_slug"),
+        CheckConstraint("price >= 0", name="ck_products_price"),
+        CheckConstraint(
+            "weight_min_grams IS NULL OR weight_min_grams > 0", name="ck_products_weight_min_grams"
+        ),
+        CheckConstraint(
+            "weight_max_grams IS NULL OR weight_max_grams > 0", name="ck_products_weight_max_grams"
+        ),
+        CheckConstraint(
+            "portions_min IS NULL OR portions_min > 0", name="ck_products_portions_min"
+        ),
+        CheckConstraint(
+            "portions_max IS NULL OR portions_max > 0", name="ck_products_portions_max"
+        ),
+        CheckConstraint("diameter_cm IS NULL OR diameter_cm > 0", name="ck_products_diameter_cm"),
+        CheckConstraint(
+            "height_min_cm IS NULL OR height_min_cm > 0", name="ck_products_height_min_cm"
+        ),
+        CheckConstraint(
+            "height_max_cm IS NULL OR height_max_cm > 0", name="ck_products_height_max_cm"
+        ),
+        CheckConstraint(
+            "weight_min_grams IS NULL OR weight_max_grams IS NULL OR weight_min_grams <= weight_max_grams",
+            name="ck_products_weight_range",
+        ),
+        CheckConstraint(
+            "portions_min IS NULL OR portions_max IS NULL OR portions_min <= portions_max",
+            name="ck_products_portions_range",
+        ),
+        CheckConstraint(
+            "height_min_cm IS NULL OR height_max_cm IS NULL OR height_min_cm <= height_max_cm",
+            name="ck_products_height_range",
+        ),
+    )
+
+    def __str__(self) -> str:
+        return self.name
 
     id: Mapped[str] = mapped_column(
         String(32),
@@ -139,15 +179,15 @@ class Product(Base):
     )
 
     created_at: Mapped[datetime] = mapped_column(
-        DateTime,
-        default=datetime.utcnow,
+        DateTime(timezone=True),
+        default=utc_now,
         nullable=False,
     )
 
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime,
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
+        DateTime(timezone=True),
+        default=utc_now,
+        onupdate=utc_now,
         nullable=False,
     )
 
@@ -185,6 +225,16 @@ class Product(Base):
 class PickupLocation(Base):
     __tablename__ = "pickup_locations"
 
+    def __str__(self) -> str:
+        return f"{self.name} — {self.address}"
+
+    weekday_hours: Mapped[str] = mapped_column(
+        String(100), default="08:00–21:00", server_default="08:00–21:00", nullable=False
+    )
+    weekend_hours: Mapped[str] = mapped_column(
+        String(100), default="09:00–21:00", server_default="09:00–21:00", nullable=False
+    )
+
     id: Mapped[str] = mapped_column(
         String(32),
         primary_key=True,
@@ -213,15 +263,15 @@ class PickupLocation(Base):
     )
 
     created_at: Mapped[datetime] = mapped_column(
-        DateTime,
-        default=datetime.utcnow,
+        DateTime(timezone=True),
+        default=utc_now,
         nullable=False,
     )
 
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime,
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
+        DateTime(timezone=True),
+        default=utc_now,
+        onupdate=utc_now,
         nullable=False,
     )
 
@@ -232,6 +282,9 @@ class PickupLocation(Base):
 
 class ShowcaseItem(Base):
     __tablename__ = "showcase_items"
+    __table_args__ = (
+        UniqueConstraint("pickup_location_id", "product_id", name="uq_showcase_location_product"),
+    )
 
     id: Mapped[str] = mapped_column(
         String(32),
@@ -240,15 +293,15 @@ class ShowcaseItem(Base):
     )
 
     created_at: Mapped[datetime] = mapped_column(
-        DateTime,
-        default=datetime.utcnow,
+        DateTime(timezone=True),
+        default=utc_now,
         nullable=False,
     )
 
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime,
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
+        DateTime(timezone=True),
+        default=utc_now,
+        onupdate=utc_now,
         nullable=False,
     )
 
@@ -302,14 +355,14 @@ class SiteContact(Base):
     )
 
     created_at: Mapped[datetime] = mapped_column(
-        DateTime,
-        default=datetime.utcnow,
+        DateTime(timezone=True),
+        default=utc_now,
         nullable=False,
     )
 
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime,
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
+        DateTime(timezone=True),
+        default=utc_now,
+        onupdate=utc_now,
         nullable=False,
     )

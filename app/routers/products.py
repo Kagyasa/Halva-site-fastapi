@@ -3,9 +3,8 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
 from app.database import get_db
-from app.models.catalog import Product
+from app.models.catalog import Category, Product
 from app.schemas.catalog import ProductSchema
-
 
 router = APIRouter(
     prefix="/api/products",
@@ -23,7 +22,7 @@ def get_products(
     statement = (
         select(Product)
         .options(selectinload(Product.category))
-        .where(Product.is_active.is_(True))
+        .where(Product.is_active.is_(True), Product.category.has(Category.is_active.is_(True)))
         .order_by(Product.name)
     )
 
@@ -45,6 +44,7 @@ def get_available_products(
         .where(
             Product.is_active.is_(True),
             Product.is_available_for_order.is_(True),
+            Product.category.has(Category.is_active.is_(True)),
         )
         .order_by(Product.name)
     )

@@ -15,7 +15,10 @@
 
     header.setAttribute("role", "button");
     header.setAttribute("tabindex", "0");
-    header.setAttribute("aria-expanded", String(sidebar.classList.contains("is-open")));
+    header.setAttribute(
+      "aria-expanded",
+      String(sidebar.classList.contains("is-open")),
+    );
 
     const toggle = () => {
       if (!window.matchMedia(MOBILE_QUERY).matches) return;
@@ -23,7 +26,7 @@
       sidebar.classList.toggle("is-open");
       header.setAttribute(
         "aria-expanded",
-        String(sidebar.classList.contains("is-open"))
+        String(sidebar.classList.contains("is-open")),
       );
     };
 
@@ -37,9 +40,20 @@
     });
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", setupMobileFilters);
-  } else {
+  function setupAdminPage() {
+    const actions = document.getElementById("dropdownMenuButton");
+    if (actions?.disabled) {
+      actions.closest(".dropdown")?.remove();
+      document
+        .querySelectorAll("#select-all, input.select-box[type='checkbox']")
+        .forEach((checkbox) => checkbox.closest("th, td")?.remove());
+    }
     setupMobileFilters();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", setupAdminPage);
+  } else {
+    setupAdminPage();
   }
 })();

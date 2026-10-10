@@ -1,11 +1,8 @@
 from logging.config import fileConfig
 
+import app.models  # noqa: F401 -- register all tables before autogeneration
 from alembic import context
-from sqlalchemy import pool
-
-from app.database import Base, DATABASE_URL
-import app.models
-
+from app.database import DATABASE_URL, Base
 
 config = context.config
 
@@ -29,18 +26,21 @@ def run_migrations_offline() -> None:
         context.run_migrations()
 
 
+def configure_connection(connection) -> None:
+    context.configure(connection=connection, target_metadata=target_metadata, compare_type=True)
+    with context.begin_transaction():
+        context.run_migrations()
+
+
 def run_migrations_online() -> None:
-    from app.database import engine
+    supplied = config.attributes.get("connection")
+    if supplied is not None:
+        configure_connection(supplied)
+    else:
+        from app.database import engine
 
-    with engine.connect() as connection:
-        context.configure(
-            connection=connection,
-            target_metadata=target_metadata,
-            compare_type=True,
-        )
-
-        with context.begin_transaction():
-            context.run_migrations()
+        with engine.connect() as connection:
+            configure_connection(connection)
 
 
 if context.is_offline_mode():

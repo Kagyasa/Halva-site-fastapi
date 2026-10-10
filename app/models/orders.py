@@ -1,12 +1,13 @@
-import uuid
-from datetime import date, datetime, time, timezone
+from datetime import date, datetime, time
 from decimal import Decimal
 
 from sqlalchemy import (
     Boolean,
+    CheckConstraint,
     Date,
     DateTime,
     ForeignKey,
+    Index,
     Integer,
     Numeric,
     String,
@@ -15,14 +16,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
-
-
-def generate_uuid() -> str:
-    return uuid.uuid4().hex
-
-
-def utc_now() -> datetime:
-    return datetime.now(timezone.utc)
+from app.services.common import generate_uuid, utc_now
 
 
 class PrivacyPolicyVersion(Base):
@@ -118,6 +112,22 @@ class ConsentTextVersion(Base):
 
 class Order(Base):
     __tablename__ = "orders"
+    __table_args__ = (
+        CheckConstraint(
+            "subtotal >= 0 AND delivery_fee >= 0 AND total = subtotal + delivery_fee",
+            name="ck_orders_amounts",
+        ),
+        CheckConstraint(
+            "status IN ('new', 'confirmed', 'completed', 'cancelled')", name="ck_orders_status"
+        ),
+        CheckConstraint("delivery_type IN ('pickup', 'delivery')", name="ck_orders_delivery_type"),
+        Index("ix_orders_created_at", "created_at"),
+        Index("ix_orders_status", "status"),
+        Index("ix_orders_requested_date", "requested_date"),
+    )
+    idempotency_key: Mapped[str | None] = mapped_column(String(64), unique=True, nullable=True)
+    request_sha256: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    pickup_location = relationship("PickupLocation")
 
     id: Mapped[str] = mapped_column(
         String(32),
@@ -213,6 +223,13 @@ class Order(Base):
 
 class OrderItem(Base):
     __tablename__ = "order_items"
+    __table_args__ = (
+        CheckConstraint("price >= 0", name="ck_order_items_price"),
+        CheckConstraint("quantity >= 1 AND quantity <= 50", name="ck_order_items_quantity"),
+    )
+
+    def __str__(self) -> str:
+        return f"{self.product_name} × {self.quantity}"
 
     id: Mapped[str] = mapped_column(
         String(32),

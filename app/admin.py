@@ -1,113 +1,59 @@
 from __future__ import annotations
 
-
-
-import hmac
-
 import logging
-
-import secrets
-
+from datetime import UTC, datetime, timedelta, timezone
+from decimal import Decimal
 from pathlib import Path
 
-from datetime import datetime, timezone, timedelta
-
-
-
-from argon2 import PasswordHasher
-from argon2.exceptions import (
-    InvalidHashError,
-    VerificationError,
-    VerifyMismatchError,
-)
 from fastapi import FastAPI
-
-from sqlalchemy import delete, select
-
-from pydantic_settings import BaseSettings, SettingsConfigDict
-
 from sqladmin import Admin, BaseView, ModelView, expose
-
+from sqladmin.authorization import AuthorizationBackend
 from sqladmin.filters import (
     ForeignKeyFilter,
     OperationColumnFilter,
     StaticValuesFilter,
 )
-
-from sqladmin.authentication import AuthenticationBackend
-
+from sqlalchemy import delete, select
+from sqlalchemy.orm import selectinload
+from starlette.concurrency import run_in_threadpool
 from starlette.requests import Request
-
 from starlette.responses import HTMLResponse, RedirectResponse
-
 from wtforms import SelectField
+from wtforms.validators import NumberRange, Optional
 
-
-
+from app.admin_security import HalvaAdminAuth
+from app.config import get_settings
 from app.database import SessionLocal, engine
-
-from app.services.rate_limit import admin_login_rate_limiter
-
 from app.models.catalog import (
-
     Category,
-
     PickupLocation,
-
     Product,
-
     ShowcaseItem,
-
     SiteContact,
-
 )
-
 from app.models.orders import (
-
     ConsentEvent,
-
     ConsentTextVersion,
-
     Order,
-
     OrderItem,
-
     PrivacyPolicyVersion,
-
 )
-
-from app.models.admin_users import AdminUser
-
-from sqladmin.authorization import AuthorizationBackend
+from app.services.common import format_money, two_months_ago
 
 SNEZHINSK_TZ = timezone(timedelta(hours=5))
-
-
-
 logger = logging.getLogger(__name__)
-
-
-
-
-password_hasher = PasswordHasher()
 ORDER_STATUS_CHOICES = [
-
     ("new", "Новая"),
-
     ("confirmed", "Подтверждена"),
-
     ("completed", "Выполнена"),
-
     ("cancelled", "Отменена"),
-
 ]
-
 ORDER_STATUS_LABELS = dict(ORDER_STATUS_CHOICES)
-
 DELIVERY_TYPE_LABELS = {
     "pickup": "Самовывоз",
     "delivery": "Доставка",
 }
+
 
 class RussianDateFilter(OperationColumnFilter):
     def get_operation_options(self, column_obj):
@@ -118,522 +64,22 @@ class RussianDateFilter(OperationColumnFilter):
         ]
 
 
-
-
-class AdminSettings(BaseSettings):
-    app_env: str = "development"
-
-    admin_secret_key: str
-    admin_session_https_only: bool = False
-
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        extra="ignore",
-    )
-
-
-
-
-
-def admin_blocked_response(retry_after: int) -> HTMLResponse:
-
-    minutes = max(1, (retry_after + 59) // 60)
-
-
-
-    html = f"""<!doctype html>
-
-<html lang="ru">
-
-<head>
-
-  <meta charset="utf-8">
-
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  <title>HALVA — вход временно заблокирован</title>
-
-  <style>
-
-    * {{ box-sizing: border-box; }}
-
-    body {{
-
-      min-height: 100vh;
-
-      margin: 0;
-
-      display: grid;
-
-      place-items: center;
-
-      padding: 24px;
-
-      background:
-
-        radial-gradient(circle at 85% 15%, rgba(253, 201, 227, .72), transparent 36%),
-
-        radial-gradient(circle at 10% 90%, rgba(255, 228, 188, .75), transparent 38%),
-
-        #fff;
-
-      color: #1a1a1a;
-
-      font-family: Inter, Arial, sans-serif;
-
-    }}
-
-    .card {{
-
-      width: min(460px, 100%);
-
-      padding: 38px 34px;
-
-      border: 1px solid rgba(26, 26, 26, .08);
-
-      border-radius: 26px;
-
-      background: rgba(255, 255, 255, .94);
-
-      box-shadow: 0 24px 70px rgba(54, 16, 35, .14);
-
-      text-align: center;
-
-    }}
-
-    .icon {{
-
-      width: 58px;
-
-      height: 58px;
-
-      margin: 0 auto 18px;
-
-      display: grid;
-
-      place-items: center;
-
-      border-radius: 50%;
-
-      background: rgba(223, 19, 117, .10);
-
-      color: #DF1375;
-
-      font-size: 28px;
-
-      font-weight: 700;
-
-    }}
-
-    h1 {{
-
-      margin: 0;
-
-      font-family: Georgia, "Times New Roman", serif;
-
-      font-size: 30px;
-
-      font-weight: 400;
-
-      line-height: 1.15;
-
-    }}
-
-    p {{
-
-      margin: 14px 0 0;
-
-      color: #6f6269;
-
-      font-size: 15px;
-
-      line-height: 1.5;
-
-    }}
-
-    .timer {{
-
-      margin-top: 22px;
-
-      color: #DF1375;
-
-      font-size: 15px;
-
-      font-weight: 600;
-
-    }}
-
-    a {{
-
-      display: inline-flex;
-
-      align-items: center;
-
-      justify-content: center;
-
-      min-width: 180px;
-
-      height: 44px;
-
-      margin-top: 24px;
-
-      padding: 0 22px;
-
-      border-radius: 22px;
-
-      background: #DF1375;
-
-      color: #fff;
-
-      text-decoration: none;
-
-      font-size: 15px;
-
-      font-weight: 600;
-
-    }}
-
-  </style>
-
-</head>
-
-<body>
-
-  <main class="card">
-
-    <div class="icon">!</div>
-
-    <h1>Слишком много попыток входа</h1>
-
-    <p>
-
-      Вход в админку с этого IP временно заблокирован.
-
-      Это защита от подбора пароля.
-
-    </p>
-
-    <div class="timer" id="timer">
-
-      Повторите примерно через {minutes} мин.
-
-    </div>
-
-    <a href="/admin/login">Вернуться ко входу</a>
-
-  </main>
-
-
-
-  <script>
-
-    let seconds = {retry_after};
-
-    const timer = document.getElementById("timer");
-
-
-
-    const updateTimer = () => {{
-
-      if (seconds <= 0) {{
-
-        timer.textContent = "Блокировка закончилась. Можно попробовать снова.";
-
-        return;
-
-      }}
-
-
-
-      const mins = Math.floor(seconds / 60);
-
-      const secs = seconds % 60;
-
-
-
-      timer.textContent =
-
-        `До следующей попытки: ${{mins}}:${{String(secs).padStart(2, "0")}}`;
-
-
-
-      seconds -= 1;
-
-    }};
-
-
-
-    updateTimer();
-
-    setInterval(updateTimer, 1000);
-
-  </script>
-
-</body>
-
-</html>"""
-
-
-
-    return HTMLResponse(
-
-        content=html,
-
-        status_code=429,
-
-        headers={
-
-            "Retry-After": str(retry_after),
-
-            "Cache-Control": "no-store",
-
-        },
-
-    )
-
-
-
-
-
-class HalvaAdminAuth(AuthenticationBackend):
-    def __init__(self, settings: AdminSettings):
-        self.settings = settings
-
-        super().__init__(
-            secret_key=settings.admin_secret_key,
-            session_cookie="halva_admin",
-            same_site="lax",
-            https_only=settings.admin_session_https_only,
-            max_age=60 * 30,
-        )
-
-    async def login(self, request: Request) -> bool:
-        form = await request.form()
-
-        username = str(form.get("username", "")).strip()
-        password = str(form.get("password", ""))
-
-        client_ip = (
-            request.client.host
-            if request.client
-            else "unknown"
-        )
-
-        is_blocked, retry_after = (
-            admin_login_rate_limiter.is_blocked(
-                client_ip
-            )
-        )
-
-        if is_blocked:
-            logger.warning(
-                "Заблокирована попытка входа в админку "
-                "с IP %s. Повтор через %s сек.",
-                client_ip,
-                retry_after,
-            )
-
-            return admin_blocked_response(
-                retry_after
-            )
-
-        with SessionLocal() as db:
-            user = db.scalar(
-                select(AdminUser).where(
-                    AdminUser.username == username
-                )
-            )
-
-        password_ok = False
-
-        if user is not None and user.is_active:
-            try:
-                password_ok = password_hasher.verify(
-                    user.password_hash,
-                    password,
-                )
-
-            except VerifyMismatchError:
-                password_ok = False
-
-            except (
-                VerificationError,
-                InvalidHashError,
-            ):
-                logger.exception(
-                    "Не удалось проверить пароль "
-                    "пользователя %s.",
-                    username,
-                )
-                return False
-
-        if (
-            user is None
-            or not user.is_active
-            or not password_ok
-        ):
-            newly_blocked, retry_after = (
-                admin_login_rate_limiter.record_failure(
-                    client_ip
-                )
-            )
-
-            if newly_blocked:
-                logger.warning(
-                    "IP %s временно заблокирован "
-                    "после серии неудачных входов. "
-                    "Блокировка: %s сек.",
-                    client_ip,
-                    retry_after,
-                )
-
-                return admin_blocked_response(
-                    retry_after
-                )
-
-            logger.warning(
-                "Неудачная попытка входа "
-                "в админку с IP %s",
-                client_ip,
-            )
-
-            return False
-
-        admin_login_rate_limiter.reset(
-            client_ip
-        )
-
-        request.session.clear()
-
-        request.session.update(
-            {
-                "halva_admin_authenticated": True,
-                "halva_admin_user_id": user.id,
-                "halva_admin_username": user.username,
-                "halva_admin_role": user.role,
-            }
-        )
-
-        return True
-
-    async def logout(self, request: Request) -> bool:
-        request.session.clear()
-        return True
-
-    async def authenticate(
-        self,
-        request: Request,
-    ) -> bool:
-        if (
-            request.session.get(
-                "halva_admin_authenticated"
-            )
-            is not True
-        ):
-            return False
-
-        user_id = request.session.get(
-            "halva_admin_user_id"
-        )
-
-        if user_id is None:
-            request.session.clear()
-            return False
-
-        with SessionLocal() as db:
-            user = db.get(
-                AdminUser,
-                user_id,
-            )
-
-        if user is None or not user.is_active:
-            request.session.clear()
-            return False
-
-        request.session[
-            "halva_admin_role"
-        ] = user.role
-
-        request.session[
-            "halva_admin_username"
-        ] = user.username
-
-        return True
-
-
-
-
-
 def format_datetime_local(value: datetime | None) -> str:
-
     if value is None:
-
         return "—"
-
     if value.tzinfo is None:
-
-        value = value.replace(tzinfo=timezone.utc)
-
+        value = value.replace(tzinfo=UTC)
     return value.astimezone(SNEZHINSK_TZ).strftime("%d.%m.%Y %H:%M")
 
-
-
-
-
-def format_money(value) -> str:
-
-    if value is None:
-
-        return "—"
-
-    try:
-
-        amount = float(value)
-
-    except (TypeError, ValueError):
-
-        return str(value)
-
-    return f"{int(amount)} ₽" if amount.is_integer() else f"{amount:.2f} ₽"
 
 def format_delivery_type(value: str | None) -> str:
     if not value:
         return "—"
-
     return DELIVERY_TYPE_LABELS.get(value, value)
 
 
-def get_pickup_location_display(
-    pickup_location_id: str | None,
-) -> str:
-    if not pickup_location_id:
-        return "—"
-
-    with SessionLocal() as db:
-        location = db.get(
-            PickupLocation,
-            pickup_location_id,
-        )
-
-    if location is None:
-        return "—"
-
-    if location.address:
-        return location.address
-
-    if location.name:
-        return location.name
-
-    return "—"
-
-
-
 def format_order_items(items) -> list[str]:
-
     """One formatted label for every related OrderItem.
-
-
 
     SQLAdmin treats relationships as lists and zips the original items
 
@@ -642,791 +88,367 @@ def format_order_items(items) -> list[str]:
     iterate over characters, which caused the (<) (d) (i) (v) output.
 
     """
-
     result = []
-
-
-
     for item in items or []:
-
         line_total = item.price * item.quantity
-
         result.append(
-
             f"{item.product_name} × {item.quantity} — "
-
             f"{format_money(item.price)} / шт. = "
-
             f"{format_money(line_total)}"
-
         )
-
-
-
     return result
 
 
+PRODUCT_CATEGORY_FIELD = "category"
+SHOWCASE_LOCATION_FIELD = "pickup_location"
+SHOWCASE_PRODUCT_FIELD = "product"
 
 
+class ThreadedModelView(ModelView):
+    async def _run_arbitrary_query(self, statement):
+        if self.is_async:
+            return await super()._run_arbitrary_query(statement)
+        return await run_in_threadpool(self._run_arbitrary_query_sync, statement)
 
 
-
-Category.__str__ = lambda self: self.name  # type: ignore[method-assign]
-
-Product.__str__ = lambda self: self.name  # type: ignore[method-assign]
-
-PickupLocation.__str__ = lambda self: f"{self.name} — {self.address}"  # type: ignore[method-assign]
-
-OrderItem.__str__ = lambda self: f"{self.product_name} × {self.quantity}"  # type: ignore[method-assign]
-
-
-
-PRODUCT_CATEGORY_FIELD = "category" if hasattr(Product, "category") else "category_id"
-
-SHOWCASE_LOCATION_FIELD = (
-
-    "pickup_location"
-
-    if hasattr(ShowcaseItem, "pickup_location")
-
-    else "pickup_location_id"
-
-)
-
-SHOWCASE_PRODUCT_FIELD = (
-
-    "product"
-
-    if hasattr(ShowcaseItem, "product")
-
-    else "product_id"
-
-)
-
-
-
-
-
-class CategoryAdmin(ModelView, model=Category):
-
+class CategoryAdmin(ThreadedModelView, model=Category):
     name = "Категория"
-
     name_plural = "Категории"
-
     icon = "fa-solid fa-tags"
-
-
-
     column_list = ["name", "slug", "is_active", "updated_at"]
-
     column_searchable_list = [Category.name, Category.slug]
-
     form_columns = ["name", "slug", "is_active"]
-
     column_labels = {
-
         "name": "Название",
-
         "slug": "Slug",
-
         "is_active": "Активна",
-
         "created_at": "Создана",
-
         "updated_at": "Изменена",
-
     }
-
     can_delete = False
 
 
-
-
-
-class ProductAdmin(ModelView, model=Product):
-
+class ProductAdmin(ThreadedModelView, model=Product):
     name = "Товар"
-
     name_plural = "Товары"
-
     icon = "fa-solid fa-cake-candles"
+    form_args = {"price": {"validators": [NumberRange(min=0)]}}
+    for field in (
+        "weight_min_grams",
+        "weight_max_grams",
+        "portions_min",
+        "portions_max",
+    ):
+        form_args[field] = {
+            "validators": [Optional(), NumberRange(min=1)],
+            "render_kw": {"step": "1"},
+        }
+    for field in (
+        "diameter_cm",
+        "height_min_cm",
+        "height_max_cm",
+    ):
+        form_args[field] = {
+            "validators": [Optional(), NumberRange(min=Decimal("0.01"))],
+            "render_kw": {"step": "0.01"},
+        }
 
-
+    async def on_model_change(self, data, model, is_created, request):
+        for low, high in (
+            ("weight_min_grams", "weight_max_grams"),
+            ("portions_min", "portions_max"),
+            ("height_min_cm", "height_max_cm"),
+        ):
+            if data.get(low) is not None and data.get(high) is not None and data[low] > data[high]:
+                raise ValueError("Минимальное значение не должно превышать максимальное")
 
     column_list = [
-
         "name",
-
         "display_name",
-
         "price",
-
         PRODUCT_CATEGORY_FIELD,
-
         "is_active",
-
         "is_available_for_order",
-
         "updated_at",
-
     ]
-
     column_searchable_list = [Product.name, Product.slug]
-
     column_sortable_list = [Product.name, Product.price, Product.updated_at]
-
     form_columns = [
-
         "name",
-
         "display_name",
-
         "slug",
-
         "price",
-
         PRODUCT_CATEGORY_FIELD,
-
         "weight_min_grams",
-
         "weight_max_grams",
-
         "portions_min",
-
         "portions_max",
-
         "diameter_cm",
-
         "height_min_cm",
-
         "height_max_cm",
-
         "size",
-
         "image_url",
-
         "vk_url",
-
         "is_active",
-
         "is_available_for_order",
-
     ]
-
     column_labels = {
-
         "name": "Полное название",
-
         "display_name": "Название в карусели",
-
         "slug": "Slug",
-
         "price": "Цена",
-
         "category": "Категория",
-
         "category_id": "Категория",
-
         "weight_min_grams": "Вес от, г",
-
         "weight_max_grams": "Вес до, г",
-
         "portions_min": "Порций от",
-
         "portions_max": "Порций до",
-
         "diameter_cm": "Диаметр, см",
-
         "height_min_cm": "Высота от, см",
-
         "height_max_cm": "Высота до, см",
-
         "size": "Размер",
-
         "image_url": "Фото",
-
         "vk_url": "Ссылка VK",
-
         "is_active": "Активен",
-
         "is_available_for_order": "Доступен для заказа",
-
         "created_at": "Создан",
-
         "updated_at": "Изменён",
-
     }
-
     column_formatters = {
-
         Product.price: lambda model, _: format_money(model.price),
-
         Product.created_at: lambda model, _: format_datetime_local(model.created_at),
-
         Product.updated_at: lambda model, _: format_datetime_local(model.updated_at),
-
     }
-
     can_delete = False
-
     page_size = 50
-
     page_size_options = [25, 50, 100]
 
 
-
-
-
-class PickupLocationAdmin(ModelView, model=PickupLocation):
-
+class PickupLocationAdmin(ThreadedModelView, model=PickupLocation):
     name = "Точка"
-
     name_plural = "Точки"
-
     icon = "fa-solid fa-location-dot"
-
-
-
     column_list = ["name", "address", "phone", "is_active"]
-
-    form_columns = ["name", "address", "phone", "is_active"]
-
+    form_columns = ["name", "address", "phone", "weekday_hours", "weekend_hours", "is_active"]
     column_labels = {
-
         "name": "Название",
-
         "address": "Адрес",
-
         "phone": "Телефон",
-
+        "weekday_hours": "Часы работы, Пн–Пт",
+        "weekend_hours": "Часы работы, Сб–Вс",
         "is_active": "Активна",
-
     }
-
     can_delete = False
 
 
-
-
-
-class ShowcaseItemAdmin(ModelView, model=ShowcaseItem):
-
+class ShowcaseItemAdmin(ThreadedModelView, model=ShowcaseItem):
     name = "Позиция витрины"
-
     name_plural = "Техническая витрина"
-
     icon = "fa-solid fa-store"
 
-
-
     def is_visible(self, request: Request) -> bool:
-
         return False
 
-
-
     column_list = [
-
         SHOWCASE_LOCATION_FIELD,
-
         SHOWCASE_PRODUCT_FIELD,
-
         "updated_at",
-
     ]
-
     form_columns = [
-
         SHOWCASE_LOCATION_FIELD,
-
         SHOWCASE_PRODUCT_FIELD,
-
     ]
-
     column_labels = {
-
         "pickup_location": "Точка",
-
         "pickup_location_id": "Точка",
-
         "product": "Товар",
-
         "product_id": "Товар",
-
         "created_at": "Добавлено",
-
         "updated_at": "Изменено",
-
     }
-
     column_default_sort = ("updated_at", True)
-
     page_size = 50
 
 
-
-
-
 class ShowcaseManagerAdmin(BaseView):
-
     name = "Управление витриной"
-
     icon = "fa-solid fa-store"
 
-
-
     @expose("/showcase-manager", methods=["GET", "POST"])
-
     async def showcase_manager(self, request: Request):
-
-        csrf_token = request.session.get("showcase_manager_csrf")
-
-        if not csrf_token:
-
-            csrf_token = secrets.token_urlsafe(32)
-
-            request.session["showcase_manager_csrf"] = csrf_token
-
-
-
-        with SessionLocal() as db:
-
-            locations_db = db.scalars(
-
-                select(PickupLocation)
-
-                .where(PickupLocation.is_active.is_(True))
-
-                .order_by(PickupLocation.address)
-
-            ).all()
-
-
-
-            locations = [
-
-                {
-
-                    "id": location.id,
-
-                    "name": location.name,
-
-                    "address": location.address,
-
-                    "phone": location.phone,
-
-                }
-
-                for location in locations_db
-
-            ]
-
-
-
-            if not locations:
-
-                return await self.templates.TemplateResponse(
-
-                    request,
-
-                    "admin/showcase_manager.html",
-
-                    context={
-
-                        "locations": [],
-
-                        "selected_location": None,
-
-                        "product_groups": [],
-
-                        "selected_product_ids": set(),
-
-                        "csrf_token": csrf_token,
-
-                        "saved": False,
-
-                    },
-
-                )
-
-
-
-            requested_location_id = (
-
-                request.query_params.get("location_id")
-
-                if request.method == "GET"
-
-                else None
-
-            )
-
-
-
-            if request.method == "POST":
-
-                form = await request.form()
-
-
-
-                submitted_csrf = str(form.get("csrf_token", ""))
-
-                if not hmac.compare_digest(submitted_csrf, csrf_token):
-                    return HTMLResponse(
-                        content=(
-                            "Сессия формы устарела. "
-                            "Обновите страницу и попробуйте ещё раз."
-                        ),
-                        status_code=403,
-                    )
-
-
-
-                requested_location_id = str(form.get("location_id", ""))
-
-                selected_product_ids = {
-
-                    str(product_id)
-
-                    for product_id in form.getlist("product_ids")
-
-                }
-
-
-
-                valid_location_ids = {
-
-                    location["id"]
-
-                    for location in locations
-
-                }
-
-
-
-                if requested_location_id not in valid_location_ids:
-                    return HTMLResponse(
-                        content="Не удалось определить точку витрины.",
-                        status_code=400,
-                    )
-
-
-
-                active_product_ids = set(
-
-                    db.scalars(
-
-                        select(Product.id).where(
-
-                            Product.is_active.is_(True)
-
-                        )
-
-                    ).all()
-
-                )
-
-
-
-                selected_product_ids &= active_product_ids
-
-
-
-                db.execute(
-
-                    delete(ShowcaseItem).where(
-
-                        ShowcaseItem.pickup_location_id
-
-                        == requested_location_id
-
-                    )
-
-                )
-
-
-
-                for product_id in sorted(selected_product_ids):
-
-                    db.add(
-
-                        ShowcaseItem(
-
-                            pickup_location_id=requested_location_id,
-
-                            product_id=product_id,
-
-                        )
-
-                    )
-
-
-
-                db.commit()
-
-
-
-                return RedirectResponse(
-
-                    url=(
-
-                        f"{request.url.path}"
-
-                        f"?location_id={requested_location_id}&saved=1"
-
-                    ),
-
-                    status_code=303,
-
-                )
-
-
-
-            valid_location_ids = {
-
-                location["id"]
-
-                for location in locations
-
-            }
-
-
-
-            if requested_location_id not in valid_location_ids:
-
-                requested_location_id = locations[0]["id"]
-
-
-
-            selected_location = next(
-
-                location
-
-                for location in locations
-
-                if location["id"] == requested_location_id
-
-            )
-
-
-
-            selected_product_ids = set(
-
-                db.scalars(
-
-                    select(ShowcaseItem.product_id).where(
-
-                        ShowcaseItem.pickup_location_id
-
-                        == requested_location_id
-
-                    )
-
-                ).all()
-
-            )
-
-
-
-            products_db = db.scalars(
-
-                select(Product)
-
-                .where(Product.is_active.is_(True))
-
-                .order_by(Product.name)
-
-            ).all()
-
-
-
-            grouped: dict[str, list[dict]] = {}
-
-
-
-            for product in products_db:
-
-                category_name = (
-
-                    product.category.name
-
-                    if getattr(product, "category", None)
-
-                    else "Без категории"
-
-                )
-
-
-
-                grouped.setdefault(category_name, []).append(
-
-                    {
-
-                        "id": product.id,
-
-                        "name": product.name,
-
-                        "display_name": product.display_name,
-
-                        "price": format_money(product.price),
-
-                        "available_for_order": product.is_available_for_order,
-
-                    }
-
-                )
-
-
-
-            product_groups = [
-
-                {
-
-                    "name": category_name,
-
-                    "products": products,
-
-                }
-
-                for category_name, products in sorted(
-
-                    grouped.items(),
-
-                    key=lambda item: item[0].casefold(),
-
-                )
-
-            ]
-
-
-
+        form = await request.form() if request.method == "POST" else None
+        result = await run_in_threadpool(self._load_or_save, request, form)
+        if isinstance(result, (HTMLResponse, RedirectResponse)):
+            return result
         return await self.templates.TemplateResponse(
-
-            request,
-
-            "admin/showcase_manager.html",
-
-            context={
-
-                "locations": locations,
-
-                "selected_location": selected_location,
-
-                "product_groups": product_groups,
-
-                "selected_product_ids": selected_product_ids,
-
-                "csrf_token": csrf_token,
-
-                "saved": request.query_params.get("saved") == "1",
-
-            },
-
+            request, "admin/showcase_manager.html", context=result
         )
 
+    def _load_or_save(self, request, form):
+        with SessionLocal() as db:
+            locations = [
+                {"id": p.id, "name": p.name, "address": p.address, "phone": p.phone}
+                for p in db.scalars(
+                    select(PickupLocation)
+                    .where(PickupLocation.is_active.is_(True))
+                    .order_by(PickupLocation.address)
+                ).all()
+            ]
+            context = {
+                "locations": locations,
+                "selected_location": None,
+                "product_groups": [],
+                "selected_product_ids": set(),
+                "csrf_token": request.session["admin_csrf"],
+                "saved": request.query_params.get("saved") == "1",
+            }
+            if not locations:
+                return context
+            location_id = (
+                str(form.get("location_id", ""))
+                if form is not None
+                else request.query_params.get("location_id")
+            )
+            valid_ids = {location["id"] for location in locations}
+            if form is not None:
+                if location_id not in valid_ids:
+                    return HTMLResponse("Не удалось определить точку витрины.", status_code=400)
+                selected = set(form.getlist("product_ids"))
+                active = set(
+                    db.scalars(
+                        select(Product.id).where(
+                            Product.is_active.is_(True),
+                            Product.category.has(Category.is_active.is_(True)),
+                        )
+                    ).all()
+                )
+                if not selected <= active:
+                    return HTMLResponse(
+                        "Некоторые товары больше недоступны. Обновите страницу.", status_code=400
+                    )
+                db.execute(
+                    delete(ShowcaseItem).where(ShowcaseItem.pickup_location_id == location_id)
+                )
+                db.add_all(
+                    [
+                        ShowcaseItem(pickup_location_id=location_id, product_id=pid)
+                        for pid in sorted(selected)
+                    ]
+                )
+                db.commit()
+                return RedirectResponse(
+                    f"{request.url.path}?location_id={location_id}&saved=1", status_code=303
+                )
+            if location_id not in valid_ids:
+                location_id = locations[0]["id"]
+            context["selected_location"] = next(
+                location for location in locations if location["id"] == location_id
+            )
+            context["selected_product_ids"] = set(
+                db.scalars(
+                    select(ShowcaseItem.product_id).where(
+                        ShowcaseItem.pickup_location_id == location_id
+                    )
+                ).all()
+            )
+            groups = {}
+            for product in db.scalars(
+                select(Product)
+                .options(selectinload(Product.category))
+                .where(
+                    Product.is_active.is_(True), Product.category.has(Category.is_active.is_(True))
+                )
+                .order_by(Product.name)
+            ).all():
+                groups.setdefault(product.category.name, []).append(
+                    {
+                        "id": product.id,
+                        "name": product.name,
+                        "display_name": product.display_name,
+                        "price": format_money(product.price),
+                        "available_for_order": product.is_available_for_order,
+                    }
+                )
+            context["product_groups"] = [
+                {"name": name, "products": products} for name, products in sorted(groups.items())
+            ]
+            return context
 
 
-
-
-class SiteContactAdmin(ModelView, model=SiteContact):
-
+class SiteContactAdmin(ThreadedModelView, model=SiteContact):
     name = "Контакт"
-
     name_plural = "Контакты"
-
     icon = "fa-solid fa-address-book"
-
-
-
     column_list = ["type", "title", "value", "is_active", "updated_at"]
-
     column_searchable_list = [
-
         SiteContact.type,
-
         SiteContact.title,
-
         SiteContact.value,
-
     ]
-
     form_columns = ["type", "title", "value", "is_active"]
-
     column_labels = {
-
         "type": "Тип",
-
         "title": "Подпись",
-
         "value": "Значение / ссылка",
-
         "is_active": "Активен",
-
         "created_at": "Создан",
-
         "updated_at": "Изменён",
-
     }
-
     can_delete = False
 
 
-
-
-
-class OrderAdmin(ModelView, model=Order):
-
+class OrderAdmin(ThreadedModelView, model=Order):
     name = "Заявка"
-
     name_plural = "Заявки"
-
     icon = "fa-solid fa-receipt"
-
-
-
     # Показываем связанные позиции каждая с новой строки,
-
     # а не компактной строкой в скобках.
-
     show_compact_lists = False
+    non_link_related_fields = [Order.items]
 
     def list_query(self, request: Request):
-        latest_order_ids = (
-            select(Order.id)
-            .order_by(Order.created_at.desc())
-            .limit(100)
+        return (
+            select(Order)
+            .where(order_visibility(request))
+            .options(selectinload(Order.items), selectinload(Order.pickup_location))
         )
 
-        return select(Order).where(
-            Order.id.in_(latest_order_ids)
+    def details_query(self, request: Request):
+        return (
+            super()
+            .details_query(request)
+            .options(selectinload(Order.items), selectinload(Order.pickup_location))
         )
-
-
 
     column_list = [
-
         "customer_name",
-
         "phone",
-
         "requested_date",
-
         "requested_time",
-
         "delivery_type",
-
         "total",
-
         "status",
-
         "created_at",
-
     ]
-
-    column_details_list = "__all__"
-
+    column_details_list = [
+        "items",
+        "id",
+        "customer_name",
+        "phone",
+        "requested_date",
+        "requested_time",
+        "delivery_type",
+        "pickup_location_id",
+        "delivery_address",
+        "subtotal",
+        "delivery_fee",
+        "total",
+        "status",
+        "staff_notes",
+        "created_at",
+        "updated_at",
+    ]
     column_searchable_list = [Order.customer_name, Order.phone]
-
     column_filters = [
         StaticValuesFilter(
             "status",
@@ -1434,7 +456,6 @@ class OrderAdmin(ModelView, model=Order):
             title="Статус",
             parameter_name="status",
         ),
-
         StaticValuesFilter(
             "delivery_type",
             values=[
@@ -1444,7 +465,6 @@ class OrderAdmin(ModelView, model=Order):
             title="Получение",
             parameter_name="delivery_type",
         ),
-
         ForeignKeyFilter(
             "pickup_location_id",
             "address",
@@ -1452,139 +472,78 @@ class OrderAdmin(ModelView, model=Order):
             title="Точка самовывоза",
             parameter_name="pickup_location_id",
         ),
-
         RussianDateFilter(
             "requested_date",
             title="Дата получения",
             parameter_name="requested_date",
         ),
     ]
-
     column_sortable_list = [
-
         Order.requested_date,
-
         Order.total,
-
         Order.status,
-
         Order.created_at,
-
     ]
-
     column_default_sort = (Order.created_at, True)
-
     column_labels = {
-
         "id": "ID",
-
         "customer_name": "Клиент",
-
         "phone": "Телефон",
-
         "requested_date": "Дата получения",
-
         "requested_time": "Время получения",
-
         "delivery_type": "Получение",
-
         "pickup_location_id": "Точка самовывоза",
-
         "delivery_address": "Адрес доставки",
-
         "subtotal": "Товары",
-
         "delivery_fee": "Доставка",
-
         "total": "Итого",
-
         "status": "Статус",
-
         "staff_notes": "Уточнения по заказу",
         "created_at": "Создана",
-
         "updated_at": "Изменена",
-
         "items": "Позиции",
-
         "consent_event": "Согласие",
-
     }
-
     column_formatters = {
-        Order.delivery_type: lambda model, _: format_delivery_type(
-            model.delivery_type
-        ),
-        Order.pickup_location_id: lambda model, _: get_pickup_location_display(
-            model.pickup_location_id
+        Order.delivery_type: lambda model, _: format_delivery_type(model.delivery_type),
+        Order.pickup_location_id: lambda model, _: (
+            model.pickup_location.address if model.pickup_location else "—"
         ),
         Order.total: lambda model, _: format_money(model.total),
-        Order.delivery_fee: lambda model, _: format_money(
-            model.delivery_fee
-        ),
+        Order.delivery_fee: lambda model, _: format_money(model.delivery_fee),
         Order.status: lambda model, _: ORDER_STATUS_LABELS.get(
             model.status,
             model.status,
         ),
-        Order.created_at: lambda model, _: format_datetime_local(
-            model.created_at
-        ),
-        Order.updated_at: lambda model, _: format_datetime_local(
-            model.updated_at
-        ),
+        Order.created_at: lambda model, _: format_datetime_local(model.created_at),
+        Order.updated_at: lambda model, _: format_datetime_local(model.updated_at),
         Order.customer_name: lambda model, _: (
             model.customer_name
             if len(model.customer_name) <= 25
             else model.customer_name[:25] + "…"
         ),
     }
-
-
-
     column_formatters_detail = {
         Order.items: lambda model, _: format_order_items(model.items),
-
-        Order.delivery_type: lambda model, _: format_delivery_type(
-            model.delivery_type
+        Order.delivery_type: lambda model, _: format_delivery_type(model.delivery_type),
+        Order.pickup_location_id: lambda model, _: (
+            model.pickup_location.address if model.pickup_location else "—"
         ),
-
-        Order.pickup_location_id: lambda model, _: get_pickup_location_display(
-            model.pickup_location_id
-        ),
-
         Order.total: lambda model, _: format_money(model.total),
-
-        Order.subtotal: lambda model, _: format_money(
-            model.subtotal
-        ),
-
-        Order.delivery_fee: lambda model, _: format_money(
-            model.delivery_fee
-        ),
-
+        Order.subtotal: lambda model, _: format_money(model.subtotal),
+        Order.delivery_fee: lambda model, _: format_money(model.delivery_fee),
         Order.status: lambda model, _: ORDER_STATUS_LABELS.get(
             model.status,
             model.status,
         ),
-
-        Order.created_at: lambda model, _: format_datetime_local(
-            model.created_at
-        ),
-
-        Order.updated_at: lambda model, _: format_datetime_local(
-            model.updated_at
-        ),
+        Order.created_at: lambda model, _: format_datetime_local(model.created_at),
+        Order.updated_at: lambda model, _: format_datetime_local(model.updated_at),
     }
-
     can_create = False
-
     can_delete = False
-
     can_edit = True
-
     form_columns = ["status", "staff_notes"]
     form_overrides = {"status": SelectField}
-
     form_args = {
         "status": {
             "choices": ORDER_STATUS_CHOICES,
@@ -1593,153 +552,104 @@ class OrderAdmin(ModelView, model=Order):
             "render_kw": {
                 "rows": 8,
                 "placeholder": (
-                    "Например: заказчик поменял вкус, "
-                    "уточнил надпись или время получения."
+                    "Например: заказчик поменял вкус, уточнил надпись или время получения."
                 ),
             },
         },
     }
-
     page_size = 50
-
     page_size_options = [25, 50, 100]
 
 
-
-
-
-class OrderItemAdmin(ModelView, model=OrderItem):
-
+class OrderItemAdmin(ThreadedModelView, model=OrderItem):
     name = "Позиция заказа"
-
     name_plural = "Позиции заказов"
-
     icon = "fa-solid fa-list"
 
-
-
     def is_visible(self, request: Request) -> bool:
-
         return False
 
+    def details_query(self, request):
+        return super().details_query(request).join(OrderItem.order).where(order_visibility(request))
 
-
+    column_details_list = ["order_id", "product_id", "product_name", "price", "quantity"]
     column_list = ["order_id", "product_name", "price", "quantity"]
-
     column_searchable_list = [OrderItem.product_name]
-
     column_labels = {
-
         "order_id": "ID заявки",
-
         "product_id": "ID товара",
-
         "product_name": "Товар",
-
         "price": "Цена за штуку",
-
         "quantity": "Количество",
-
     }
-
     column_formatters = {
-
         OrderItem.price: lambda model, _: format_money(model.price),
-
     }
-
     can_create = False
-
     can_edit = False
-
     can_delete = False
-
     page_size = 50
 
 
-
-
-
-class PrivacyPolicyAdmin(ModelView, model=PrivacyPolicyVersion):
-
+class PrivacyPolicyAdmin(ThreadedModelView, model=PrivacyPolicyVersion):
     name = "Политика"
-
     name_plural = "Политика конфиденциальности"
-
     icon = "fa-solid fa-shield-halved"
-
-
-
     column_list = ["version", "title", "is_active", "published_at", "created_at"]
-
     column_details_list = "__all__"
-
     can_create = False
-
     can_edit = False
-
     can_delete = False
 
 
-
-
-
-class ConsentTextAdmin(ModelView, model=ConsentTextVersion):
-
+class ConsentTextAdmin(ThreadedModelView, model=ConsentTextVersion):
     name = "Текст согласия"
-
     name_plural = "Тексты согласия"
-
     icon = "fa-solid fa-file-signature"
-
-
-
     column_list = ["version", "is_active", "published_at", "created_at"]
-
     column_details_list = "__all__"
-
     can_create = False
-
     can_edit = False
-
     can_delete = False
 
 
-
-
-
-class ConsentEventAdmin(ModelView, model=ConsentEvent):
-
+class ConsentEventAdmin(ThreadedModelView, model=ConsentEvent):
     name = "Согласие"
-
     name_plural = "Согласия"
-
     icon = "fa-solid fa-check-double"
 
+    def list_query(self, request):
+        return select(ConsentEvent).join(ConsentEvent.order).where(order_visibility(request))
 
+    def details_query(self, request):
+        return (
+            super().details_query(request).join(ConsentEvent.order).where(order_visibility(request))
+        )
 
     column_list = ["order_id", "consent_checked", "consented_at", "ip_address"]
-
     column_details_list = "__all__"
-
     column_formatters = {
-
-        ConsentEvent.consented_at: lambda model, _: format_datetime_local(
-
-            model.consented_at
-
-        ),
-
+        ConsentEvent.consented_at: lambda model, _: format_datetime_local(model.consented_at),
     }
-
     can_create = False
-
     can_edit = False
-
     can_delete = False
-
     can_export = False
 
+
+def order_visibility(request: Request):
+    if request.session.get("halva_admin_role") == "admin":
+        return Order.created_at >= two_months_ago()
+    return Order.status.not_in(("completed", "cancelled"))
+
+
+def order_is_visible(request: Request, order: Order) -> bool:
+    if request.session.get("halva_admin_role") != "admin":
+        return order.status not in {"completed", "cancelled"}
+    created = order.created_at
+    if created.tzinfo is None:
+        created = created.replace(tzinfo=UTC)
+    return created >= two_months_ago()
 
 
 class HalvaRoleAuthorization(AuthorizationBackend):
@@ -1768,94 +678,46 @@ class HalvaRoleAuthorization(AuthorizationBackend):
         obj=None,
     ) -> bool:
         role = request.session.get("halva_admin_role")
-
+        if isinstance(obj, Order) and not order_is_visible(request, obj):
+            return False
+        if identity == OrderItemAdmin.identity and obj is None:
+            return False
         if role == "admin":
             return True
-
         if role == "staff":
             return identity not in self.ADMIN_ONLY_IDENTITIES
-
         return False
 
 
-
 async def admin_home_redirect():
-
     return RedirectResponse(
-
         url="/admin/showcase-manager",
-
         status_code=307,
-
     )
-
-
-
 
 
 def setup_admin(app: FastAPI) -> Admin:
-
-    settings = AdminSettings()
-
-    if (
-        settings.app_env.strip().lower() == "production"
-        and not settings.admin_session_https_only
-    ):
-        raise RuntimeError(
-            "В production необходимо установить "
-            "ADMIN_SESSION_HTTPS_ONLY=true"
-        )
-
+    settings = get_settings()
     authentication_backend = HalvaAdminAuth(settings)
-
     authorization_backend = HalvaRoleAuthorization()
-
-
-
     # При переходе на /admin сразу открываем управление витриной.
-
     # Маршруты добавляются до SQLAdmin, поэтому остальные страницы
-
     # /admin/login, /admin/... продолжают работать как обычно.
-
     app.add_api_route(
-
         "/admin",
-
         admin_home_redirect,
-
         methods=["GET"],
-
         include_in_schema=False,
-
         name="halva_admin_home",
-
     )
-
     app.add_api_route(
-
         "/admin/",
-
         admin_home_redirect,
-
         methods=["GET"],
-
         include_in_schema=False,
-
         name="halva_admin_home_slash",
-
     )
-
-
-
-    admin_templates_dir = str(
-
-        Path(__file__).resolve().parent / "templates"
-
-    )
-
-
-
+    admin_templates_dir = str(Path(__file__).resolve().parent / "templates")
     admin = Admin(
         app=app,
         engine=engine,
@@ -1865,31 +727,18 @@ def setup_admin(app: FastAPI) -> Admin:
         authentication_backend=authentication_backend,
         authorization_backend=authorization_backend,
     )
-
-
-
+    for route in admin.admin.routes:
+        if getattr(route, "name", None) == "logout":
+            route.methods = {"POST"}
     admin.add_view(CategoryAdmin)
-
     admin.add_view(ProductAdmin)
-
     admin.add_view(PickupLocationAdmin)
-
     admin.add_view(ShowcaseManagerAdmin)
-
     admin.add_view(ShowcaseItemAdmin)
-
     admin.add_view(SiteContactAdmin)
-
     admin.add_view(OrderAdmin)
-
     admin.add_view(OrderItemAdmin)
-
     admin.add_view(PrivacyPolicyAdmin)
-
     admin.add_view(ConsentTextAdmin)
-
     admin.add_view(ConsentEventAdmin)
-
-
-
     return admin

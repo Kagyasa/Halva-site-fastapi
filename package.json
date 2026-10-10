@@ -1,0 +1,15 @@
+{
+  "name": "halva-frontend-checks",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --experimental-vm-modules tests/frontend.mjs",
+    "check": "node --check app/static/js/site.js",
+    "test:browser": "node tests/browser.mjs"
+  },
+  "devDependencies": {
+    "jsdom": "26.1.0",
+    "playwright": "1.62.1",
+    "prettier": "3.6.2"
+  }
+}

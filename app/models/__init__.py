@@ -1,3 +1,4 @@
+from app.models.admin_users import AdminUser
 from app.models.catalog import (
     Category,
     PickupLocation,
@@ -5,7 +6,7 @@ from app.models.catalog import (
     ShowcaseItem,
     SiteContact,
 )
-
+from app.models.notifications import EmailNotification
 from app.models.orders import (
     ConsentEvent,
     ConsentTextVersion,
@@ -14,18 +15,17 @@ from app.models.orders import (
     PrivacyPolicyVersion,
 )
 
-from app.models.admin_users import AdminUser
-
 __all__ = [
+    "AdminUser",
     "Category",
-    "Product",
-    "PickupLocation",
-    "ShowcaseItem",
-    "SiteContact",
+    "ConsentEvent",
+    "ConsentTextVersion",
+    "EmailNotification",
     "Order",
     "OrderItem",
+    "PickupLocation",
     "PrivacyPolicyVersion",
-    "ConsentTextVersion",
-    "ConsentEvent",
-    "AdminUser",
+    "Product",
+    "ShowcaseItem",
+    "SiteContact",
 ]

@@ -1,19 +1,18 @@
+import argparse
+
 from sqlalchemy import select
 
 from app.database import SessionLocal
 from app.models.catalog import Product
 
-
 VK_URLS_BY_SLUG = {
     "bento-ptichka": "https://vk.ru/market/product/bento-ptichka-134363661-11968248",
-
     # Одна карточка VK для всех стандартных вкусов бенто-торта
     "bento-tort-banan-karamel": "https://vk.ru/market/product/bento-tort-134363661-6786661",
     "bento-tort-vishnya-shokolad": "https://vk.ru/market/product/bento-tort-134363661-6786661",
     "bento-tort-klubnika-plombir": "https://vk.ru/market/product/bento-tort-134363661-6786661",
     "bento-tort-krasnyj-barhat": "https://vk.ru/market/product/bento-tort-134363661-6786661",
     "pirozhnye-mussovye": "https://vk.ru/market/product/pirozhnye-mussovye-134363661-9155506",
-
     "bento-tort-figurnyj": "https://vk.ru/market/product/bento-tort-figurny-134363661-12906778",
     "biskvitnyj-tort": "https://vk.ru/market/product/biskvitny-tort-134363661-12967910",
     "boul-s-lososem": "https://vk.ru/market/product/boul-s-lososem-134363661-10230055",
@@ -25,17 +24,14 @@ VK_URLS_BY_SLUG = {
     "kasha-molochnaya": "https://vk.ru/market/product/kasha-molochnaya-134363661-10230162",
     "keks-finanse": "https://vk.ru/market/product/kex-quotfinansyequot-134363661-9155469",
     "maminy-syrnichki": "https://vk.ru/market/product/maminy-syrnichki-134363661-10230263",
-
     # Одна карточка VK для стандартного и maxi рулета
     "merengovyj-rulet-maksi": "https://vk.ru/market/product/merengovy-rulet-134363661-3329146",
     "merengovyj-rulet-standart": "https://vk.ru/market/product/merengovy-rulet-134363661-3329146",
     "merengovyj-rulet-porcionno": "https://vk.ru/market/product/merengovy-rulet-portsionno-134363661-9155493",
-
     # Одна карточка VK для всех размеров муссового торта
     "mussovyj-tort-xl-dva-yarusa": "https://vk.ru/market/product/tort-mussovy-134363661-12074290",
     "mussovyj-tort-razmer-l": "https://vk.ru/market/product/tort-mussovy-134363661-12074290",
     "mussovyj-tort-razmer-s": "https://vk.ru/market/product/tort-mussovy-134363661-12074290",
-
     "pirozhnoe-kartoha": "https://vk.ru/market/product/pirozhnoe-quotkartokhaquot-134363661-11418476",
     "pirozhnye-dieticheskie": "https://vk.ru/market/product/pirozhnye-dieticheskie-134363661-9155509",
     "ptichka": "https://vk.ru/market/product/ptichka-134363661-11968232",
@@ -53,15 +49,29 @@ VK_URLS_BY_SLUG = {
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--overwrite", action="store_true", help="Явно заменить заполненные значения"
+    )
+    args = parser.parse_args()
     updated = 0
     not_found = []
 
     with SessionLocal() as db:
+        by_slug = {
+            product.slug: product
+            for product in db.scalars(
+                select(Product).where(Product.slug.in_(VK_URLS_BY_SLUG))
+            ).all()
+        }
         for slug, vk_url in VK_URLS_BY_SLUG.items():
-            product = db.scalar(select(Product).where(Product.slug == slug))
+            product = by_slug.get(slug)
 
             if product is None:
                 not_found.append(slug)
+                continue
+
+            if product.vk_url and not args.overwrite:
                 continue
 
             product.vk_url = vk_url

@@ -41,6 +41,8 @@ class ProductSchema(BaseModel):
 
 
 class PickupLocationSchema(BaseModel):
+    weekday_hours: str
+    weekend_hours: str
     id: str
     name: str
     address: str

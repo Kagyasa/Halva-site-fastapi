@@ -7,7 +7,7 @@ from app.schemas.catalog import (
 
 __all__ = [
     "CategorySchema",
-    "ProductSchema",
     "PickupLocationSchema",
+    "ProductSchema",
     "ShowcaseItemSchema",
 ]

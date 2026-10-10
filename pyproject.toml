@@ -1,0 +1,12 @@
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = ["ignore:Using `httpx` with `starlette.testclient` is deprecated:DeprecationWarning"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+extend-exclude = ["alembic/versions/ccc26ef2cd84*", "alembic/versions/0fae9568989c*", "alembic/versions/8d4b7e2c1f90*", "alembic/versions/3f2c9a6b7d10*", "alembic/versions/6d64d4b2b21e*"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I", "UP", "B"]
+ignore = ["B008"] # FastAPI resolves Depends/Query default objects.
