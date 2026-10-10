@@ -1,6 +1,6 @@
 import { fetchJSON } from "./api.js";
 import { formatPrice } from "./utils.js";
-import { resizeShowcaseForContent } from "./layout.js?v=20261010-nearest-price-hint";
+import { resizeShowcaseForContent } from "./layout.js?v=20261010-straight-price-arrow";
 
 let generation = 0;
 let activeRequest = null;
@@ -51,6 +51,7 @@ export async function loadShowcase(locationId, button = null) {
   const foodBox = document.getElementById("showcase-food");
   dessertBox.textContent = "Загрузка…";
   foodBox.textContent = "Загрузка…";
+  requestAnimationFrame(resizeShowcaseForContent);
   try {
     const items = await fetchJSON(
       `/api/showcase/?pickup_location_id=${encodeURIComponent(locationId)}`,

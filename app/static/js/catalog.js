@@ -5,11 +5,11 @@ import {
   normalizeProductImageUrl,
   scrollBehavior,
 } from "./utils.js";
-import { isMobileLayout } from "./layout.js?v=20261010-nearest-price-hint";
+import { isMobileLayout } from "./layout.js?v=20261010-straight-price-arrow";
 import {
   renderPriceList,
   showPriceMessage,
-} from "./prices.js?v=20261010-nearest-price-hint";
+} from "./prices.js?v=20261010-straight-price-arrow";
 let productOffset = 0;
 function getProductCardTitle(product) {
   return product?.display_name || product?.name || "Десерт";

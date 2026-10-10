@@ -1,7 +1,7 @@
 import { fetchJSON, getCheckout, getProducts } from "./api.js";
 import { formatPrice, toKopecks, scrollBehavior } from "./utils.js";
 import { focusModal, restoreModalFocus } from "./dialogs.js";
-import { renderPriceList } from "./prices.js?v=20261010-nearest-price-hint";
+import { renderPriceList } from "./prices.js?v=20261010-straight-price-arrow";
 
 let orderProducts = [];
 let orderProductsLoaded = false;

@@ -6,6 +6,13 @@ const browser = await chromium.launch({
   headless: true,
   executablePath: process.env.BROWSER_EXECUTABLE_PATH || undefined,
 });
+async function settleLayout(page) {
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+    await new Promise(requestAnimationFrame);
+    await new Promise(requestAnimationFrame);
+  });
+}
 try {
   for (const width of [360, 390, 960, 1440, 1920]) {
     const page = await browser.newPage({
@@ -13,6 +20,7 @@ try {
       reducedMotion: "reduce",
     });
     const errors = [];
+    let showcaseRowCount = 40;
     page.on("pageerror", (error) => errors.push(error.message));
     await page.route(/^https:\/\/fonts\.(googleapis|gstatic)\.com\//, (route) =>
       route.abort(),
@@ -73,7 +81,7 @@ try {
       let data = [];
       if (url.pathname === "/api/products/") data = catalog;
       if (url.pathname === "/api/showcase/")
-        data = Array.from({ length: 40 }, (_, index) => ({
+        data = Array.from({ length: showcaseRowCount }, (_, index) => ({
           product: { ...product, name: `Десерт ${index}` },
         }));
       if (url.pathname === "/api/checkout/")
@@ -97,6 +105,7 @@ try {
     await page.goto(baseURL);
     await page.locator(".showcase-row").first().waitFor();
     await page.locator(".price-pill:not([disabled])").first().waitFor();
+    await settleLayout(page);
     assert.equal(
       await page.locator("#price-categories .price-card").count(),
       4,
@@ -121,6 +130,8 @@ try {
         products: bounds("#products-section"),
         contacts: bounds("#contacts"),
         footer: bounds(".site-footer"),
+        showcaseCardBottom: bounds(".showcase-card").bottom,
+        priceTextTop: textBounds(document.querySelector(".price-title")).top,
         lastCategoryBottom: bounds("#price-categories .price-card:last-child")
           .bottom,
         productsTextTop: textBounds(document.querySelector(".products-title"))
@@ -140,6 +151,15 @@ try {
       `Contacts overlapped products at ${width}px`,
     );
     const expectedGap = width > 1024 ? (148 * width) / 1920 : 72;
+    const expectedShowcaseGap = width > 1024 ? (133 * width) / 1920 : 72;
+    assert(
+      Math.abs(
+        sections.priceTextTop -
+          sections.showcaseCardBottom -
+          expectedShowcaseGap,
+      ) < 2,
+      `Showcase-to-price gap must follow the showcase rectangle at ${width}px`,
+    );
     assert(
       Math.abs(
         sections.productsTextTop - sections.lastCategoryBottom - expectedGap,
@@ -154,6 +174,25 @@ try {
     assert(
       widthState.page <= widthState.viewport + 1,
       `Horizontal overflow at ${width}px`,
+    );
+    // The same border gap must hold when a location has a much shorter list.
+    showcaseRowCount = 1;
+    await page.locator(".showcase-tab").first().click();
+    await page.waitForFunction(
+      () => document.querySelectorAll(".showcase-row").length === 1,
+    );
+    await settleLayout(page);
+    const shortShowcaseGap = await page.evaluate(() => {
+      const title = document.createRange();
+      title.selectNodeContents(document.querySelector(".price-title"));
+      return (
+        title.getBoundingClientRect().top -
+        document.querySelector(".showcase-card").getBoundingClientRect().bottom
+      );
+    });
+    assert(
+      Math.abs(shortShowcaseGap - expectedShowcaseGap) < 2,
+      `Short showcase must retain its rectangle-to-price gap at ${width}px`,
     );
     if (width > 1024) {
       await page.locator('.header-nav a[href="#price"]').click();

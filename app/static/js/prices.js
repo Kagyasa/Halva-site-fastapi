@@ -1,5 +1,5 @@
 import { formatPrice } from "./utils.js";
-import { resizeShowcaseForContent } from "./layout.js?v=20261010-nearest-price-hint";
+import { resizeShowcaseForContent } from "./layout.js?v=20261010-straight-price-arrow";
 
 const numberFormat = new Intl.NumberFormat("ru-RU", {
   maximumFractionDigits: 2,
